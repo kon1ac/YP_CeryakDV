@@ -4,13 +4,18 @@ import 'prefs.dart';
 
 const _darkKey = 'dark_theme';
 
+const _seed = Color(0xFF1B5E9C);
+
 ThemeData appTheme(Brightness brightness) {
+  final scheme = ColorScheme.fromSeed(
+    seedColor: _seed,
+    brightness: brightness,
+  );
+
   return ThemeData(
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.indigo,
-      brightness: brightness,
-    ),
+    colorScheme: scheme,
     useMaterial3: true,
+    visualDensity: VisualDensity.comfortable,
   );
 }
 
