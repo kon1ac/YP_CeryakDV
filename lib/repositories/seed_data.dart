@@ -1,3 +1,6 @@
+import '../models/achievement.dart';
+import '../models/arena.dart';
+import '../models/contract.dart';
 import '../models/hockey_player.dart';
 import '../models/team.dart';
 
@@ -6,335 +9,539 @@ class SeedData {
 
   static final DateTime soldAt = DateTime.utc(2026, 1, 12, 10);
 
+  static final DateTime signedAt = DateTime.utc(2025, 8, 1);
+
+  static final DateTime expiresAt = DateTime.utc(2027, 6, 30);
+
+  static final List<Arena> arenas = [
+    const Arena(id: 1, name: 'Арена Медведей', city: 'Москва', capacity: 12000),
+    const Arena(id: 2, name: 'Ледовый дворец', city: 'Москва', capacity: 8500),
+    const Arena(id: 3, name: 'Зелёный лёд', city: 'Зеленогорск', capacity: 5200),
+    const Arena(id: 4, name: 'Алматы Арена', city: 'Алматы', capacity: 7300),
+    const Arena(id: 5, name: 'Тверской каток', city: 'Тверь', capacity: 3400),
+    const Arena(id: 6, name: 'Титан-Арена', city: 'Мытищи', capacity: 6100),
+    const Arena(id: 7, name: 'Тульский лёд', city: 'Тула', capacity: 4000),
+    const Arena(id: 8, name: 'Химик-Арена', city: 'Воскресенск', capacity: 3200),
+    const Arena(id: 9, name: 'Centre Bell', city: 'Монреаль', capacity: 21000),
+    const Arena(
+        id: 10, name: 'Магнитка-Арена', city: 'Магнитогорск', capacity: 7700),
+    const Arena(id: 11, name: 'Русь-Холл', city: 'Москва', capacity: 2800),
+    const Arena(
+        id: 12, name: 'Петербургский лёд', city: 'Санкт-Петербург', capacity: 9500),
+    const Arena(id: 13, name: 'Казанский лёд', city: 'Казань', capacity: 4400),
+    Arena(
+      id: 14,
+      name: 'Дальний лёд',
+      city: 'Хабаровск',
+      capacity: 3600,
+      deletedAt: soldAt,
+    ),
+  ];
+
+  static final List<Achievement> achievements = [
+    const Achievement(
+      id: 1,
+      name: 'Кубок Гагарина',
+      description: 'Победа в плей-офф лиги',
+      year: 2024,
+    ),
+    const Achievement(
+      id: 2,
+      name: 'Лучший бомбардир сезона',
+      description: 'Больше всех набранных очков',
+      year: 2025,
+    ),
+    const Achievement(
+      id: 3,
+      name: 'Лучший вратарь сезона',
+      description: 'Наименьший коэффициент пропущенных шайб',
+      year: 2025,
+    ),
+    const Achievement(
+      id: 4,
+      name: 'Самый ценный игрок',
+      description: 'Приз игрокам, определившим исход серии',
+      year: 2024,
+    ),
+    const Achievement(
+      id: 5,
+      name: 'Новичок года',
+      description: 'Лучший дебютант лиги',
+      year: 2023,
+    ),
+    const Achievement(
+      id: 6,
+      name: 'Лучший защитник',
+      description: 'Награда за игру в обороне',
+      year: 2025,
+    ),
+    const Achievement(
+      id: 7,
+      name: 'Мастер спорта',
+      description: 'Спортивное звание за достижения',
+      year: 2022,
+    ),
+    const Achievement(
+      id: 8,
+      name: 'Заслуженный тренер',
+      description: 'Звание за подготовку игроков',
+      year: 2021,
+    ),
+    const Achievement(
+      id: 9,
+      name: 'Кубок мира',
+      description: 'Победа на международном турнире',
+      year: 2019,
+    ),
+    const Achievement(
+      id: 10,
+      name: 'Символическая сборная',
+      description: 'Включение в сборную сезона',
+      year: 2025,
+    ),
+    Achievement(
+      id: 11,
+      name: 'Кубок Вызова',
+      description: 'Упразднённый турнир',
+      year: 2018,
+      deletedAt: soldAt,
+    ),
+  ];
+
   static final List<Team> teams = [
-    const Team(id: 1, name: 'Медведи', city: 'Москва', foundedYear: 2004),
-    const Team(id: 2, name: 'Бурые Медведи', city: 'Москва', foundedYear: 1998),
     const Team(
-        id: 3, name: 'Ледяные Короли', city: 'Зеленогорск', foundedYear: 2011),
-    const Team(id: 4, name: 'Алмата', city: 'Алматы', foundedYear: 2006),
-    const Team(id: 5, name: 'Факел', city: 'Тверь', foundedYear: 1987),
-    const Team(id: 6, name: 'Титан', city: 'Московская область', foundedYear: 1995),
-    const Team(id: 7, name: 'Арсенал', city: 'Тула', foundedYear: 2008),
-    const Team(id: 8, name: 'Химик', city: 'Воскресенск', foundedYear: 1953),
+        id: 1, name: 'Медведи', city: 'Москва', foundedYear: 2004, arenaId: 1),
     const Team(
-        id: 9, name: 'Сборная Канады', city: 'Монреаль', foundedYear: 1914),
-    const Team(id: 10, name: 'Металлист', city: 'Магнитогорск', foundedYear: 1955),
-    const Team(id: 11, name: 'Русь', city: 'Москва', foundedYear: 2005),
+        id: 2,
+        name: 'Бурые Медведи',
+        city: 'Москва',
+        foundedYear: 1998,
+        arenaId: 2),
     const Team(
-        id: 12, name: 'Колизей', city: 'Санкт-Петербург', foundedYear: 2013),
-    const Team(id: 13, name: 'Атлант', city: 'Мытищи', foundedYear: 2009),
-    const Team(id: 14, name: 'Огни', city: 'Казань', foundedYear: 2015),
+        id: 3,
+        name: 'Ледяные Короли',
+        city: 'Зеленогорск',
+        foundedYear: 2011,
+        arenaId: 3),
+    const Team(
+        id: 4, name: 'Алмата', city: 'Алматы', foundedYear: 2006, arenaId: 4),
+    const Team(id: 5, name: 'Факел', city: 'Тверь', foundedYear: 1987, arenaId: 5),
+    const Team(
+        id: 6,
+        name: 'Титан',
+        city: 'Московская область',
+        foundedYear: 1995,
+        arenaId: 6),
+    const Team(id: 7, name: 'Арсенал', city: 'Тула', foundedYear: 2008, arenaId: 7),
+    const Team(
+        id: 8, name: 'Химик', city: 'Воскресенск', foundedYear: 1953, arenaId: 8),
+    const Team(
+        id: 9,
+        name: 'Сборная Канады',
+        city: 'Монреаль',
+        foundedYear: 1914,
+        arenaId: 9),
+    const Team(
+        id: 10,
+        name: 'Металлист',
+        city: 'Магнитогорск',
+        foundedYear: 1955,
+        arenaId: 10),
+    const Team(id: 11, name: 'Русь', city: 'Москва', foundedYear: 2005, arenaId: 11),
+    const Team(
+        id: 12,
+        name: 'Колизей',
+        city: 'Санкт-Петербург',
+        foundedYear: 2013,
+        arenaId: 12),
+    const Team(
+        id: 13, name: 'Атлант', city: 'Мытищи', foundedYear: 2009, arenaId: 6),
+    const Team(id: 14, name: 'Огни', city: 'Казань', foundedYear: 2015, arenaId: 13),
     Team(
       id: 15,
       name: 'Беркуты',
       city: 'Хабаровск',
       foundedYear: 2001,
+      arenaId: 14,
       deletedAt: soldAt,
     ),
   ];
 
+  static int _contractSeq = 0;
+
+  static Contract contract(double salary) {
+    _contractSeq++;
+    return Contract(
+      id: _contractSeq,
+      number: 100 + _contractSeq,
+      email: 'player$_contractSeq@hockey.example',
+      salary: salary,
+      signedAt: signedAt,
+      expiresAt: expiresAt,
+    );
+  }
+
+  static HockeyPlayer _player({
+    required int id,
+    required String name,
+    required String description,
+    required double price,
+    required String category,
+    required int teamId,
+    int? jerseyNumber,
+    List<int> achievements = const [],
+    Contract? contract,
+    DateTime? deletedAt,
+  }) {
+    return HockeyPlayer(
+      id: id,
+      name: name,
+      description: description,
+      price: price,
+      category: category,
+      teamId: teamId,
+      jerseyNumber: jerseyNumber,
+      achievementIds: achievements,
+      contract: contract,
+      deletedAt: deletedAt,
+    );
+  }
+
   static final List<HockeyPlayer> players = [
-    const HockeyPlayer(
+    _player(
       id: 1,
       name: 'Сергей Матвеев',
-      description: 'Главный тренер, воспитанник школы «Медведей»',
+      description: 'Главный тренер, воспитатель школы «Медведей»',
       price: 25000,
       category: 'Тренер',
-      team: 'Медведи',
+      teamId: 1,
+      achievements: const [8, 7],
+      contract: contract(25000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 2,
       name: 'Александр Костров',
       description: 'Нападающий первого звена, капитан команды',
       price: 3000,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 56,
+      achievements: const [1, 4],
+      contract: contract(3000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 3,
       name: 'Михаил Пономарёв',
       description: 'Защитник, надёжен в меньшинстве',
       price: 5000,
       category: 'Защитник',
-      team: 'Бурые Медведи',
+      teamId: 2,
       jerseyNumber: 89,
+      achievements: const [6],
     ),
-    const HockeyPlayer(
+    _player(
       id: 4,
       name: 'Андрей Кисляк',
       description: 'Нападающий, лучший бомбардир прошлого сезона',
       price: 7000,
       category: 'Нападающий',
-      team: 'Ледяные Короли',
+      teamId: 3,
       jerseyNumber: 77,
+      achievements: const [2, 10],
+      contract: contract(7000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 5,
       name: 'Антон Антипов',
       description: 'Нападающий, силовой форвард',
       price: 5600,
       category: 'Нападающий',
-      team: 'Ледяные Короли',
+      teamId: 3,
       jerseyNumber: 67,
+      achievements: const [1],
     ),
-    const HockeyPlayer(
+    _player(
       id: 6,
       name: 'Георгий Бушманов',
       description: 'Нападающий, быстро выходит из обороны',
       price: 5000,
       category: 'Нападающий',
-      team: 'Алмата',
+      teamId: 4,
       jerseyNumber: 1,
+      achievements: const [5],
     ),
-    const HockeyPlayer(
+    _player(
       id: 7,
       name: 'Игорь Дрозд',
       description: 'Нападающий третьего звена',
       price: 4500,
       category: 'Нападающий',
-      team: 'Алмата',
+      teamId: 4,
       jerseyNumber: 19,
     ),
-    const HockeyPlayer(
+    _player(
       id: 8,
       name: 'Руслан Жданов',
       description: 'Тренер, отвечает за физическую подготовку',
       price: 18000,
       category: 'Тренер',
-      team: 'Бурые Медведи',
+      teamId: 2,
+      achievements: const [8],
+      contract: contract(18000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 9,
       name: 'Борис Никитин',
       description: 'Защитник, блокирует броски',
       price: 4500,
       category: 'Защитник',
-      team: 'Бурые Медведи',
+      teamId: 2,
       jerseyNumber: 44,
+      achievements: const [6, 7],
     ),
-    const HockeyPlayer(
+    _player(
       id: 10,
       name: 'Семен Бакин',
       description: 'Вратарь, первый номер команды',
       price: 7000,
       category: 'Вратарь',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 55,
+      achievements: const [3, 9],
+      contract: contract(7000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 11,
       name: 'Иван Савчук',
       description: 'Вратарь, уверенно играет на выходе',
       price: 4500,
       category: 'Вратарь',
-      team: 'Бурые Медведи',
+      teamId: 2,
       jerseyNumber: 45,
+      achievements: const [3],
     ),
-    const HockeyPlayer(
+    _player(
       id: 12,
       name: 'Егор Щукин',
       description: 'Нападающий, перспективное звено клуба',
       price: 5600,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 27,
+      achievements: const [5, 10],
+      contract: contract(5600),
     ),
-    const HockeyPlayer(
+    _player(
       id: 13,
       name: 'Дмитрий Щукин',
       description: 'Вратарь с опытом игры в КХЛ',
       price: 5000,
       category: 'Вратарь',
-      team: 'Факел',
+      teamId: 5,
       jerseyNumber: 14,
     ),
-    const HockeyPlayer(
+    _player(
       id: 14,
       name: 'Евгений Царев',
       description: 'Нападающий, сильный щелчок от синей линии',
       price: 7000,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 23,
+      achievements: const [2],
+      contract: contract(7000),
     ),
-    HockeyPlayer(
+    _player(
       id: 15,
       name: 'Александр Точилин',
       description: 'Тренер вратарей',
       price: 13000,
       category: 'Тренер',
-      team: 'Титан',
+      teamId: 6,
       deletedAt: soldAt,
     ),
-    const HockeyPlayer(
+    _player(
       id: 16,
       name: 'Алексей Смирнов',
       description: 'Защитник, играет в большинстве',
       price: 4500,
       category: 'Защитник',
-      team: 'Арсенал',
+      teamId: 7,
       jerseyNumber: 47,
+      achievements: const [6],
     ),
-    const HockeyPlayer(
+    _player(
       id: 17,
       name: 'Анатолий Жилин',
       description: 'Спортивный директор, ведёт трансферные сделки',
       price: 23000,
       category: 'Спортивный директор',
-      team: 'Титан',
+      teamId: 6,
+      contract: contract(23000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 18,
       name: 'Вадим Казанцев',
       description: 'Спортивный директор «Бурых Медведей»',
       price: 35000,
       category: 'Спортивный директор',
-      team: 'Бурые Медведи',
+      teamId: 2,
+      contract: contract(35000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 19,
       name: 'Денис Васильев',
       description: 'Нападающий, работает в меньшинстве',
       price: 4500,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 61,
     ),
-    const HockeyPlayer(
+    _player(
       id: 20,
       name: 'Игорь Гаврилов',
       description: 'Нападающий, быстрый каток',
       price: 4000,
       category: 'Нападающий',
-      team: 'Химик',
+      teamId: 8,
       jerseyNumber: 8,
     ),
-    const HockeyPlayer(
+    _player(
       id: 21,
       name: 'Степан Жарский',
       description: 'Тренер, специалист по розыгрышу большинства',
       price: 16000,
       category: 'Тренер',
-      team: 'Химик',
+      teamId: 8,
+      achievements: const [8],
     ),
-    const HockeyPlayer(
+    _player(
       id: 22,
       name: 'Томаш Бартович',
       description: 'Тренер, чешская школа хоккея',
       price: 17000,
       category: 'Тренер',
-      team: 'Медведи',
+      teamId: 1,
+      achievements: const [8, 9],
+      contract: contract(17000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 23,
       name: 'Юрий Романенко',
       description: 'Тренер, отвечает за оборону команды',
       price: 14000,
       category: 'Тренер',
-      team: 'Ледяные Короли',
+      teamId: 3,
     ),
-    const HockeyPlayer(
+    _player(
       id: 24,
       name: 'Вадим Назаров',
       description: 'Нападающий, забивает в контратаках',
       price: 5000,
       category: 'Нападающий',
-      team: 'Титан',
+      teamId: 6,
       jerseyNumber: 91,
     ),
-    const HockeyPlayer(
+    _player(
       id: 25,
       name: 'Максим Стрельцов',
       description: 'Тренер, бывший игрок НХЛ',
       price: 19000,
       category: 'Тренер',
-      team: 'Ледяные Короли',
+      teamId: 3,
+      achievements: const [1, 8],
+      contract: contract(19000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 26,
       name: 'Валерий Сотников',
       description: 'Спортивный директор, формирует бюджет клуба',
       price: 30000,
       category: 'Спортивный директор',
-      team: 'Титан',
+      teamId: 6,
     ),
-    const HockeyPlayer(
+    _player(
       id: 27,
       name: 'Илья Березин',
       description: 'Нападающий второго звена',
       price: 5000,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 72,
+      contract: contract(5000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 28,
       name: 'Доменик Дюшарм',
       description: 'Тренер молодежной хоккейной сборной Канады',
       price: 19000,
       category: 'Тренер',
-      team: 'Сборная Канады',
+      teamId: 9,
+      achievements: const [9, 8],
+      contract: contract(19000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 29,
       name: 'Валерий Поляков',
       description: 'Тренер, работает с молодыми игроками',
       price: 17000,
       category: 'Тренер',
-      team: 'Алмата',
+      teamId: 4,
     ),
-    const HockeyPlayer(
+    _player(
       id: 30,
       name: 'Алексей Платонов',
       description: 'Нападающий, хороший каток и техника',
       price: 4000,
       category: 'Нападающий',
-      team: 'Бурые Медведи',
+      teamId: 2,
       jerseyNumber: 87,
+      achievements: const [5],
     ),
-    const HockeyPlayer(
+    _player(
       id: 31,
       name: 'Виктория Каштанова',
       description: 'Спортивный директор, ведёт переговоры о трансферах',
       price: 33000,
       category: 'Спортивный директор',
-      team: 'Медведи',
+      teamId: 1,
+      contract: contract(33000),
     ),
-    const HockeyPlayer(
+    _player(
       id: 32,
       name: 'Кузьма Шмелев',
       description: 'Вратарь, третий номер команды',
       price: 5000,
       category: 'Вратарь',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 54,
     ),
-    const HockeyPlayer(
+    _player(
       id: 33,
       name: 'Владислав Куницын',
       description: 'Нападающий, забивает бросками с кистей',
       price: 4500,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 18,
     ),
-    const HockeyPlayer(
+    _player(
       id: 34,
       name: 'Кирилл Емельянов',
       description: 'Нападающий, лидер второго звена',
       price: 4000,
       category: 'Нападающий',
-      team: 'Медведи',
+      teamId: 1,
       jerseyNumber: 15,
+      achievements: const [10],
     ),
-    HockeyPlayer(
+    _player(
       id: 35,
       name: 'Иван Качалов',
       description: 'Тренер, готовит защитников',
       price: 20000,
       category: 'Тренер',
-      team: 'Металлист',
+      teamId: 10,
       deletedAt: soldAt,
     ),
   ];

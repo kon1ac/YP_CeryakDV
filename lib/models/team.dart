@@ -7,6 +7,10 @@ class Team implements Identifiable {
   final String city;
   final int foundedYear;
 
+  final int arenaId;
+
+  final String arenaName;
+
   final int rosterSize;
 
   @override
@@ -17,6 +21,8 @@ class Team implements Identifiable {
     required this.name,
     required this.city,
     this.foundedYear = 0,
+    this.arenaId = 0,
+    this.arenaName = '',
     this.rosterSize = 0,
     this.deletedAt,
   });
@@ -31,6 +37,8 @@ class Team implements Identifiable {
     String? name,
     String? city,
     int? foundedYear,
+    int? arenaId,
+    String? arenaName,
     int? rosterSize,
     DateTime? deletedAt,
     bool clearDeletedAt = false,
@@ -40,10 +48,32 @@ class Team implements Identifiable {
       name: name ?? this.name,
       city: city ?? this.city,
       foundedYear: foundedYear ?? this.foundedYear,
+      arenaId: arenaId ?? this.arenaId,
+      arenaName: arenaName ?? this.arenaName,
       rosterSize: rosterSize ?? this.rosterSize,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'city': city,
+        'foundedYear': foundedYear,
+        'arenaId': arenaId,
+        'deletedAt': deletedAt?.toIso8601String(),
+      };
+
+  factory Team.fromJson(Map<String, dynamic> json) => Team(
+        id: json['id'] as int? ?? 0,
+        name: json['name'] as String? ?? '',
+        city: json['city'] as String? ?? '',
+        foundedYear: json['foundedYear'] as int? ?? 0,
+        arenaId: json['arenaId'] as int? ?? 0,
+        deletedAt: json['deletedAt'] == null
+            ? null
+            : DateTime.tryParse(json['deletedAt'] as String),
+      );
 
   @override
   String toString() => 'Team($id, $name, $city)';

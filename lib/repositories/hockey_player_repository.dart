@@ -1,6 +1,9 @@
+import '../models/achievement.dart';
+import '../models/arena.dart';
 import '../models/hockey_player.dart';
 import '../models/page_result.dart';
 import '../models/player_query.dart';
+import '../models/team.dart';
 
 abstract interface class HockeyPlayerRepository {
   Future<PageResult<HockeyPlayer>> find(PlayerQuery query);
@@ -19,5 +22,13 @@ abstract interface class HockeyPlayerRepository {
 
   Future<int> deleteMany(List<int> ids, {bool physical = false});
 
-  Future<List<String>> teamNames();
+  Future<List<Team>> teams();
+
+  Future<List<Arena>> arenas();
+
+  Future<List<Achievement>> achievements();
+
+  Future<bool> jerseyNumberTaken(int number, {int? exceptId});
+
+  Future<bool> contractEmailTaken(String email, {int? exceptId});
 }

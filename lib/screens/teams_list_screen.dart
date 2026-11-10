@@ -124,6 +124,11 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
         title: const Text('Команды'),
         actions: [
           IconButton(
+            tooltip: 'Добавить',
+            onPressed: () => context.go('/teams/new'),
+            icon: const Icon(Icons.add),
+          ),
+          IconButton(
             tooltip: _filtersOpen ? 'Скрыть фильтры' : 'Показать фильтры',
             onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
             icon: Icon(
@@ -322,7 +327,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
           TableColumnSpec(
             label: 'Команда',
             sortField: 'name',
-            build: (t) => Text(t.name),
+            build: (t) => _openLink('/teams/${t.id}', t.name),
           ),
           TableColumnSpec(
             label: 'Город',
@@ -370,7 +375,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
           item: team,
           selected: model.selected.contains(team.id),
           onSelectChanged: (value) => model.toggleSelection(team.id),
-          title: Text(team.name),
+          title: _openLink('/teams/${team.id}', team.name),
           subtitle: Text(team.city),
           fields: [
             (
@@ -387,11 +392,26 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
     );
   }
 
+  Widget _openLink(String location, String text) {
+    return InkWell(
+      onTap: () => context.go(location),
+      child: Text(
+        text,
+        style: TextStyle(color: Theme.of(context).colorScheme.primary),
+      ),
+    );
+  }
+
   List<Widget> _rowActions(Team team) {
     final model = context.read<TeamListNotifier>();
 
     if (team.isDeleted) {
       return [
+      IconButton(
+        tooltip: 'Изменить',
+        onPressed: () => context.go('/teams/${team.id}/edit'),
+        icon: const Icon(Icons.edit_outlined, size: 20),
+      ),
         IconButton(
           tooltip: 'Вернуть список',
           onPressed: () => model.restore(team.id),

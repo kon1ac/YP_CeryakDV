@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import '../models/arena.dart';
 import '../models/page_result.dart';
 import '../models/team.dart';
 import '../models/team_query.dart';
@@ -10,6 +11,10 @@ abstract interface class TeamRepository {
 
   Future<Team?> findById(int id);
 
+  Future<Team> create(Team team);
+
+  Future<Team> update(Team team);
+
   Future<void> softDelete(int id);
 
   Future<void> hardDelete(int id);
@@ -19,6 +24,10 @@ abstract interface class TeamRepository {
   Future<int> deleteMany(List<int> ids, {bool physical = false});
 
   Future<List<String>> cityNames();
+
+  Future<List<Arena>> arenas();
+
+  Future<int> playerCountForTeam(int teamId);
 }
 
 class InMemoryTeamRepository implements TeamRepository {
@@ -52,7 +61,12 @@ class InMemoryTeamRepository implements TeamRepository {
     if (query.city != null) {
       rows = rows.where((t) => t.city == query.city).toList();
     }
-    final rosters = {for (final t in rows) t.id: _catalog.activePlayerCount(t.name)};
+    if (query.arenaId != null) {
+      rows = rows.where((t) => t.arenaId == query.arenaId).toList();
+    }
+    final rosters = {
+      for (final t in rows) t.id: _catalog.activePlayerCount(t.id),
+    };
 
     if (query.playersFrom != null) {
       rows = rows.where((t) => rosters[t.id]! >= query.playersFrom!).toList();
@@ -81,17 +95,48 @@ class InMemoryTeamRepository implements TeamRepository {
         ? <Team>[]
         : rows
             .sublist(from, to)
-            .map((t) => t.copyWith(rosterSize: rosters[t.id]))
+            .map((t) => _decorate(t, rosters[t.id]!))
             .toList();
 
     return PageResult(items: items, page: page, size: query.size, total: total);
   }
 
+  Team _decorate(Team team, int roster) => team.copyWith(
+        rosterSize: roster,
+        arenaName: _catalog.arenaNameById(team.arenaId),
+      );
+
   @override
   Future<Team?> findById(int id) async {
     await Future<void>.delayed(_latency);
     final index = _teams.indexWhere((t) => t.id == id);
-    return index == -1 ? null : _teams[index];
+    if (index == -1) return null;
+    return _decorate(_teams[index], _catalog.activePlayerCount(id));
+  }
+
+  @override
+  Future<Team> create(Team team) async {
+    await Future<void>.delayed(_latency);
+    final created = Team(
+      id: _catalog.nextTeamId(),
+      name: team.name,
+      city: team.city,
+      foundedYear: team.foundedYear,
+      arenaId: team.arenaId,
+    );
+    _teams.add(created);
+    await _catalog.persist();
+    return _decorate(created, 0);
+  }
+
+  @override
+  Future<Team> update(Team team) async {
+    await Future<void>.delayed(_latency);
+    final index = _indexOf(team.id);
+    final next = team.copyWith(deletedAt: _teams[index].deletedAt);
+    _teams[index] = next;
+    await _catalog.persist();
+    return _decorate(next, _catalog.activePlayerCount(next.id));
   }
 
   @override
@@ -99,12 +144,14 @@ class InMemoryTeamRepository implements TeamRepository {
     await Future<void>.delayed(_latency);
     final index = _indexOf(id);
     _teams[index] = _teams[index].copyWith(deletedAt: DateTime.now());
+    await _catalog.persist();
   }
 
   @override
   Future<void> hardDelete(int id) async {
     await Future<void>.delayed(_latency);
     _teams.removeWhere((t) => t.id == id);
+    await _catalog.persist();
   }
 
   @override
@@ -112,6 +159,7 @@ class InMemoryTeamRepository implements TeamRepository {
     await Future<void>.delayed(_latency);
     final index = _indexOf(id);
     _teams[index] = _teams[index].copyWith(clearDeletedAt: true);
+    await _catalog.persist();
   }
 
   @override
@@ -129,11 +177,24 @@ class InMemoryTeamRepository implements TeamRepository {
       }
       count++;
     }
+    if (count > 0) await _catalog.persist();
     return count;
   }
 
   @override
   Future<List<String>> cityNames() async => _catalog.cities;
+
+  @override
+  Future<List<Arena>> arenas() async {
+    await Future<void>.delayed(_latency);
+    return _catalog.arenas.where((a) => !a.isDeleted).toList();
+  }
+
+  @override
+  Future<int> playerCountForTeam(int teamId) async {
+    await Future<void>.delayed(_latency);
+    return _catalog.activePlayerCount(teamId);
+  }
 
   int _indexOf(int id) {
     final index = _teams.indexWhere((t) => t.id == id);

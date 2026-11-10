@@ -1,9 +1,10 @@
 import 'list_query.dart';
 
-class TeamQuery extends ListQuery {
+class TeamQuery extends ListQuery<TeamQuery> {
   const TeamQuery({
     super.search = '',
     this.city,
+    this.arenaId,
     this.playersFrom,
     this.playersTo,
     super.sortField = 'name',
@@ -18,6 +19,8 @@ class TeamQuery extends ListQuery {
 
   final String? city;
 
+  final int? arenaId;
+
   final int? playersFrom;
 
   final int? playersTo;
@@ -29,6 +32,7 @@ class TeamQuery extends ListQuery {
   bool get isFiltered =>
       isSearchActive ||
       city != null ||
+      arenaId != null ||
       playersFrom != null ||
       playersTo != null ||
       includeDeleted;
@@ -36,6 +40,7 @@ class TeamQuery extends ListQuery {
   TeamQuery copyWith({
     Object? search = unset,
     Object? city = unset,
+    Object? arenaId = unset,
     Object? playersFrom = unset,
     Object? playersTo = unset,
     String? sortField,
@@ -48,6 +53,7 @@ class TeamQuery extends ListQuery {
     return TeamQuery(
       search: search == unset ? this.search : search as String,
       city: city == unset ? this.city : city as String?,
+      arenaId: arenaId == unset ? this.arenaId : arenaId as int?,
       playersFrom:
           playersFrom == unset ? this.playersFrom : playersFrom as int?,
       playersTo: playersTo == unset ? this.playersTo : playersTo as int?,
@@ -73,6 +79,7 @@ class TeamQuery extends ListQuery {
       ),
       if (search.trim().isNotEmpty) 'search': search.trim(),
       'city': ?city,
+      if (arenaId != null) 'arenaId': '$arenaId',
       if (playersFrom != null) 'playersFrom': '$playersFrom',
       if (playersTo != null) 'playersTo': '$playersTo',
     };
@@ -83,6 +90,7 @@ class TeamQuery extends ListQuery {
     return TeamQuery(
       search: params['search'] ?? '',
       city: params['city'],
+      arenaId: parseInt(params['arenaId']),
       playersFrom: parseInt(params['playersFrom']),
       playersTo: parseInt(params['playersTo']),
       sortField: sortField,
@@ -99,6 +107,7 @@ class TeamQuery extends ListQuery {
       other is TeamQuery &&
       other.search == search &&
       other.city == city &&
+      other.arenaId == arenaId &&
       other.playersFrom == playersFrom &&
       other.playersTo == playersTo &&
       other.sortField == sortField &&
@@ -112,6 +121,7 @@ class TeamQuery extends ListQuery {
   int get hashCode => Object.hash(
         search,
         city,
+        arenaId,
         playersFrom,
         playersTo,
         sortField,
@@ -121,4 +131,28 @@ class TeamQuery extends ListQuery {
         includeDeleted,
         simulateError,
       );
+
+  @override
+  TeamQuery withBase({
+    Object? search = unset,
+    String? sortField,
+    bool? sortAscending,
+    int? page,
+    int? size,
+    bool? includeDeleted,
+    bool? simulateError,
+  }) {
+    return copyWith(
+      search: search,
+      sortField: sortField,
+      sortAscending: sortAscending,
+      page: page,
+      size: size,
+      includeDeleted: includeDeleted,
+      simulateError: simulateError,
+    );
+  }
+
+  @override
+  TeamQuery withPage(int page) => copyWith(page: page);
 }

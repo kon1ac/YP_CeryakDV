@@ -43,6 +43,11 @@ class Format {
     return int.tryParse(cleaned);
   }
 
+  static String isoDate(DateTime value) {
+    final local = value.toLocal();
+    return '${local.year}-${_two(local.month)}-${_two(local.day)}';
+  }
+
   static String _strip(String raw) => raw
       .trim()
       .replaceAll('\u00A0', '')

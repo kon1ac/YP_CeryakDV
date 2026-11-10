@@ -21,7 +21,7 @@ abstract interface class Identifiable {
   String get label;
 }
 
-abstract class ListQuery {
+abstract class ListQuery<Q extends ListQuery<Q>> {
   const ListQuery({
     this.search = '',
     this.sortField = 'name',
@@ -51,6 +51,18 @@ abstract class ListQuery {
   bool get isFiltered;
 
   Map<String, String> toQueryParameters();
+
+  Q withBase({
+    Object? search = unset,
+    String? sortField,
+    bool? sortAscending,
+    int? page,
+    int? size,
+    bool? includeDeleted,
+    bool? simulateError,
+  });
+
+  Q withPage(int page);
 }
 
 double? parseDouble(String? raw) {

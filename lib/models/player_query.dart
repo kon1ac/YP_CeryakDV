@@ -1,10 +1,11 @@
 import 'list_query.dart';
 
-class PlayerQuery extends ListQuery {
+class PlayerQuery extends ListQuery<PlayerQuery> {
   const PlayerQuery({
     super.search = '',
     this.category,
-    this.team,
+    this.teamId,
+    this.achievementId,
     this.priceFrom,
     this.priceTo,
     super.sortField = 'name',
@@ -27,7 +28,9 @@ class PlayerQuery extends ListQuery {
 
   final String? category;
 
-  final String? team;
+  final int? teamId;
+
+  final int? achievementId;
 
   final double? priceFrom;
 
@@ -40,7 +43,8 @@ class PlayerQuery extends ListQuery {
   bool get isFiltered =>
       isSearchActive ||
       category != null ||
-      team != null ||
+      teamId != null ||
+      achievementId != null ||
       priceFrom != null ||
       priceTo != null ||
       includeDeleted;
@@ -48,7 +52,8 @@ class PlayerQuery extends ListQuery {
   PlayerQuery copyWith({
     Object? search = unset,
     Object? category = unset,
-    Object? team = unset,
+    Object? teamId = unset,
+    Object? achievementId = unset,
     Object? priceFrom = unset,
     Object? priceTo = unset,
     String? sortField,
@@ -61,7 +66,9 @@ class PlayerQuery extends ListQuery {
     return PlayerQuery(
       search: search == unset ? this.search : search as String,
       category: category == unset ? this.category : category as String?,
-      team: team == unset ? this.team : team as String?,
+      teamId: teamId == unset ? this.teamId : teamId as int?,
+      achievementId:
+          achievementId == unset ? this.achievementId : achievementId as int?,
       priceFrom: priceFrom == unset ? this.priceFrom : priceFrom as double?,
       priceTo: priceTo == unset ? this.priceTo : priceTo as double?,
       sortField: sortField ?? this.sortField,
@@ -86,7 +93,8 @@ class PlayerQuery extends ListQuery {
       ),
       if (search.trim().isNotEmpty) 'search': search.trim(),
       'category': ?category,
-      'team': ?team,
+      if (teamId != null) 'teamId': '$teamId',
+      if (achievementId != null) 'achievementId': '$achievementId',
       if (priceFrom != null) 'priceFrom': plainNumber(priceFrom!),
       if (priceTo != null) 'priceTo': plainNumber(priceTo!),
     };
@@ -97,7 +105,8 @@ class PlayerQuery extends ListQuery {
     return PlayerQuery(
       search: params['search'] ?? '',
       category: params['category'],
-      team: params['team'],
+      teamId: parseInt(params['teamId']),
+      achievementId: parseInt(params['achievementId']),
       priceFrom: parseDouble(params['priceFrom']),
       priceTo: parseDouble(params['priceTo']),
       sortField: sortField,
@@ -114,7 +123,8 @@ class PlayerQuery extends ListQuery {
       other is PlayerQuery &&
       other.search == search &&
       other.category == category &&
-      other.team == team &&
+      other.teamId == teamId &&
+      other.achievementId == achievementId &&
       other.priceFrom == priceFrom &&
       other.priceTo == priceTo &&
       other.sortField == sortField &&
@@ -128,7 +138,8 @@ class PlayerQuery extends ListQuery {
   int get hashCode => Object.hash(
         search,
         category,
-        team,
+        teamId,
+        achievementId,
         priceFrom,
         priceTo,
         sortField,
@@ -138,4 +149,28 @@ class PlayerQuery extends ListQuery {
         includeDeleted,
         simulateError,
       );
+
+  @override
+  PlayerQuery withBase({
+    Object? search = unset,
+    String? sortField,
+    bool? sortAscending,
+    int? page,
+    int? size,
+    bool? includeDeleted,
+    bool? simulateError,
+  }) {
+    return copyWith(
+      search: search,
+      sortField: sortField,
+      sortAscending: sortAscending,
+      page: page,
+      size: size,
+      includeDeleted: includeDeleted,
+      simulateError: simulateError,
+    );
+  }
+
+  @override
+  PlayerQuery withPage(int page) => copyWith(page: page);
 }

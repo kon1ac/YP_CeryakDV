@@ -129,6 +129,11 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
         title: const Text('Хоккеисты'),
         actions: [
           IconButton(
+            tooltip: 'Добавить игрока',
+            onPressed: () => context.go('/players/new'),
+            icon: const Icon(Icons.person_add_alt),
+          ),
+          IconButton(
             tooltip: _filtersOpen ? 'Скрыть фильтры' : 'Показать фильтры',
             onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
             icon: Icon(_filtersOpen ? Icons.filter_alt : Icons.filter_alt_outlined),
@@ -250,20 +255,43 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
           ),
           SizedBox(
             width: 190,
-            child: DropdownButtonFormField<String>(
-              initialValue: query.team,
+            child: DropdownButtonFormField<int>(
+              initialValue: query.teamId,
               isExpanded: true,
               hint: const Text('Команда'),
               decoration: const InputDecoration(labelText: 'Команда'),
               items: [
-                const DropdownMenuItem<String>(
+                const DropdownMenuItem<int>(
                   value: null,
                   child: Text('Любая'),
                 ),
-                for (final team in model.teamOptions)
-                  DropdownMenuItem<String>(value: team, child: Text(team)),
+                for (final team in model.teams)
+                  DropdownMenuItem<int>(value: team.id, child: Text(team.name)),
               ],
-              onChanged: (value) => model.applyQuery(query.copyWith(team: value)),
+              onChanged: (value) =>
+                  model.applyQuery(query.copyWith(teamId: value)),
+            ),
+          ),
+          SizedBox(
+            width: 210,
+            child: DropdownButtonFormField<int>(
+              initialValue: query.achievementId,
+              isExpanded: true,
+              hint: const Text('Награда'),
+              decoration: const InputDecoration(labelText: 'Награда'),
+              items: [
+                const DropdownMenuItem<int>(
+                  value: null,
+                  child: Text('Любая'),
+                ),
+                for (final achievement in model.achievements)
+                  DropdownMenuItem<int>(
+                    value: achievement.id,
+                    child: Text(achievement.name),
+                  ),
+              ],
+              onChanged: (value) =>
+                  model.applyQuery(query.copyWith(achievementId: value)),
             ),
           ),
           SizedBox(
@@ -348,7 +376,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
       TableColumnSpec(
         label: 'Игрок',
         sortField: 'name',
-        build: (p) => Text(p.name),
+        build: (p) => _openLink('/players/${p.id}', p.name),
       ),
       TableColumnSpec(
         label: 'Номер',
@@ -365,7 +393,21 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
       TableColumnSpec(
         label: 'Команда',
         sortField: 'team',
-        build: (p) => Text(p.team),
+        build: (p) => Text(p.teamName),
+      ),
+      TableColumnSpec(
+        label: 'Награды',
+        sortField: 'achievements',
+        build: (p) => Text(
+          p.achievementNames.isEmpty ? '—' : p.achievementNames.join(', '),
+        ),
+      ),
+      TableColumnSpec(
+        label: 'Контракт',
+        sortField: 'contract',
+        build: (p) => Text(
+          p.contract == null ? '—' : Format.price(p.contract!.salary),
+        ),
       ),
       TableColumnSpec(
         label: 'Цена',
@@ -406,10 +448,20 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
           item: player,
           selected: model.selected.contains(player.id),
           onSelectChanged: (value) => model.toggleSelection(player.id),
-          title: Text(player.name),
-          subtitle: Text('${player.category} · ${player.team}'),
+          title: _openLink('/players/${player.id}', player.name),
+          subtitle: Text('${player.category} · ${player.teamName}'),
           fields: [
             ('Цена', Text(Format.price(player.price))),
+            (
+              'Награды',
+              Text(
+                player.achievementNames.isEmpty
+                    ? '—'
+                    : player.achievementNames.join(', '),
+              )
+            ),
+            if (player.contract != null)
+              ('Контракт', Text(Format.price(player.contract!.salary))),
             (
               'Номер',
               Text(player.jerseyNumber == null
@@ -423,6 +475,16 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
           actions: _rowActions(player),
         );
       },
+    );
+  }
+
+  Widget _openLink(String location, String text) {
+    return InkWell(
+      onTap: () => context.go(location),
+      child: Text(
+        text,
+        style: TextStyle(color: Theme.of(context).colorScheme.primary),
+      ),
     );
   }
 
@@ -445,6 +507,11 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
     }
 
     return [
+      IconButton(
+        tooltip: 'Изменить',
+        onPressed: () => context.go('/players/${player.id}/edit'),
+        icon: const Icon(Icons.edit_outlined, size: 20),
+      ),
       IconButton(
         tooltip: 'Продать',
         onPressed: () => _confirmDelete(player, physical: false),
