@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api_exceptions.dart';
 import '../models/arena.dart';
 import '../repositories/arena_repository.dart';
 import '../state/arena_list_notifier.dart';
@@ -89,13 +90,19 @@ class _ArenaFormScreenState extends State<ArenaFormScreen> {
       capacity: Validators.parseInt(values['capacity']) ?? 0,
     );
 
-    if (_arena == null) {
-      await repository.create(draft);
-    } else {
-      await repository.update(draft);
+    try {
+      if (_arena == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(draft);
+      }
+      await model.load();
+      return const FormSubmitResult(true);
+    } on ValidationException catch (error) {
+      return FormSubmitResult.failure(error.errors);
+    } on ApiException catch (error) {
+      return FormSubmitResult.failure({'': error.message});
     }
-    await model.load();
-    return const FormSubmitResult(true);
   }
 
   @override

@@ -64,16 +64,32 @@ class Team implements Identifiable {
         'deletedAt': deletedAt?.toIso8601String(),
       };
 
-  factory Team.fromJson(Map<String, dynamic> json) => Team(
-        id: json['id'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
-        city: json['city'] as String? ?? '',
-        foundedYear: json['foundedYear'] as int? ?? 0,
-        arenaId: json['arenaId'] as int? ?? 0,
-        deletedAt: json['deletedAt'] == null
-            ? null
-            : DateTime.tryParse(json['deletedAt'] as String),
-      );
+  factory Team.fromJson(Map<String, dynamic> json) {
+    final arena = json['arena'];
+    final arenaMap = arena is Map
+        ? Map<String, dynamic>.from(arena)
+        : const <String, dynamic>{};
+    return Team(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      city: json['city'] as String? ?? '',
+      foundedYear: json['foundedYear'] as int? ?? 0,
+      arenaId: json['arenaId'] as int? ?? arenaMap['id'] as int? ?? 0,
+      arenaName:
+          json['arenaName'] as String? ?? arenaMap['name'] as String? ?? '',
+      rosterSize: json['rosterSize'] as int? ?? 0,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.tryParse(json['deletedAt'] as String),
+    );
+  }
+
+  Map<String, dynamic> toApiBody() => {
+        'name': name,
+        'city': city,
+        'foundedYear': foundedYear,
+        'arenaId': arenaId,
+      };
 
   @override
   String toString() => 'Team($id, $name, $city)';

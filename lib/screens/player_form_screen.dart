@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api_exceptions.dart';
 import '../models/hockey_player.dart';
 import '../repositories/hockey_player_repository.dart';
 import '../state/player_list_notifier.dart';
@@ -128,14 +129,22 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
       clearContract: contractFromValues(values) == null,
     );
 
-    if (_player == null) {
-      await repository.create(draft);
-    } else {
-      await repository.update(draft);
+    try {
+      if (_player == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(draft);
+      }
+      await model.refreshIndexes();
+      await model.load();
+      return const FormSubmitResult(true);
+    } on ValidationException catch (error) {
+      return FormSubmitResult.failure(error.errors);
+    } on ConflictException catch (error) {
+      return FormSubmitResult.failure({'': error.message});
+    } on ApiException catch (error) {
+      return FormSubmitResult.failure({'': error.message});
     }
-    await model.refreshIndexes();
-    await model.load();
-    return const FormSubmitResult(true);
   }
 
   @override

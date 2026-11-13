@@ -61,10 +61,17 @@ class Achievement implements Identifiable {
         name: json['name'] as String? ?? '',
         description: json['description'] as String? ?? '',
         year: json['year'] as int? ?? 0,
+        holderCount: json['holderCount'] as int? ?? 0,
         deletedAt: json['deletedAt'] == null
             ? null
             : DateTime.tryParse(json['deletedAt'] as String),
       );
+
+  Map<String, dynamic> toApiBody() => {
+        'name': name,
+        'description': description,
+        'year': year,
+      };
 
   @override
   String toString() => 'Achievement($id, $name)';

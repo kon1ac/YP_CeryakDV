@@ -93,24 +93,58 @@ class HockeyPlayer implements Identifiable {
         'deletedAt': deletedAt?.toIso8601String(),
       };
 
-  factory HockeyPlayer.fromJson(Map<String, dynamic> json) => HockeyPlayer(
-        id: json['id'] as int? ?? 0,
-        name: json['name'] as String? ?? '',
-        description: json['description'] as String? ?? '',
-        price: (json['price'] as num?)?.toDouble() ?? 0,
-        category: json['category'] as String? ?? '',
-        teamId: json['teamId'] as int? ?? 0,
-        achievementIds:
-            (json['achievementIds'] as List?)?.cast<int>() ?? const [],
-        contract: json['contract'] == null
-            ? null
-            : Contract.fromJson(
-                Map<String, dynamic>.from(json['contract'] as Map)),
-        jerseyNumber: json['jerseyNumber'] as int?,
-        deletedAt: json['deletedAt'] == null
-            ? null
-            : DateTime.tryParse(json['deletedAt'] as String),
-      );
+  factory HockeyPlayer.fromJson(Map<String, dynamic> json) {
+    final team = json['team'];
+    final teamMap =
+        team is Map ? Map<String, dynamic>.from(team) : const <String, dynamic>{};
+    final achievementsRaw = json['achievements'];
+    final achievementMaps = achievementsRaw is List
+        ? [
+            for (final item in achievementsRaw)
+              if (item is Map) Map<String, dynamic>.from(item),
+          ]
+        : const <Map<String, dynamic>>[];
+    final idsFromExpanded = [
+      for (final item in achievementMaps) item['id'] as int? ?? 0,
+    ].where((id) => id > 0).toList();
+    final namesFromExpanded = [
+      for (final item in achievementMaps) item['name'] as String? ?? '',
+    ].where((name) => name.isNotEmpty).toList();
+
+    return HockeyPlayer(
+      id: json['id'] as int? ?? 0,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+      category: json['category'] as String? ?? '',
+      teamId: json['teamId'] as int? ?? teamMap['id'] as int? ?? 0,
+      teamName: json['teamName'] as String? ?? teamMap['name'] as String? ?? '',
+      achievementIds: (json['achievementIds'] as List?)?.cast<int>() ??
+          idsFromExpanded,
+      achievementNames: (json['achievementNames'] as List?)?.cast<String>() ??
+          namesFromExpanded,
+      contract: json['contract'] == null
+          ? null
+          : Contract.fromJson(
+              Map<String, dynamic>.from(json['contract'] as Map),
+            ),
+      jerseyNumber: json['jerseyNumber'] as int?,
+      deletedAt: json['deletedAt'] == null
+          ? null
+          : DateTime.tryParse(json['deletedAt'] as String),
+    );
+  }
+
+  Map<String, dynamic> toApiBody() => {
+        'name': name,
+        'description': description,
+        'price': price,
+        'category': category,
+        'teamId': teamId,
+        'achievementIds': achievementIds,
+        'jerseyNumber': jerseyNumber,
+        'contract': contract?.toJson(),
+      };
 
   @override
   String toString() => 'HockeyPlayer($id, $name, $teamName)';

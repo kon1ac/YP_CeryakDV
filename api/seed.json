@@ -1,0 +1,870 @@
+{
+  "arenas": [
+    {
+      "id": 1,
+      "name": "Арена Медведей",
+      "city": "Москва",
+      "capacity": 12000,
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Ледовый дворец",
+      "city": "Москва",
+      "capacity": 8500,
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Зелёный лёд",
+      "city": "Зеленогорск",
+      "capacity": 5200,
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Алматы Арена",
+      "city": "Алматы",
+      "capacity": 7300,
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Тверской каток",
+      "city": "Тверь",
+      "capacity": 3400,
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "Титан-Арена",
+      "city": "Мытищи",
+      "capacity": 6100,
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "Тульский лёд",
+      "city": "Тула",
+      "capacity": 4000,
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "Химик-Арена",
+      "city": "Воскресенск",
+      "capacity": 3200,
+      "deletedAt": null
+    },
+    {
+      "id": 9,
+      "name": "Centre Bell",
+      "city": "Монреаль",
+      "capacity": 21000,
+      "deletedAt": null
+    },
+    {
+      "id": 10,
+      "name": "Магнитка-Арена",
+      "city": "Магнитогорск",
+      "capacity": 7700,
+      "deletedAt": null
+    },
+    {
+      "id": 11,
+      "name": "Русь-Холл",
+      "city": "Москва",
+      "capacity": 2800,
+      "deletedAt": null
+    },
+    {
+      "id": 12,
+      "name": "Петербургский лёд",
+      "city": "Санкт-Петербург",
+      "capacity": 9500,
+      "deletedAt": null
+    },
+    {
+      "id": 13,
+      "name": "Казанский лёд",
+      "city": "Казань",
+      "capacity": 4400,
+      "deletedAt": null
+    },
+    {
+      "id": 14,
+      "name": "Дальний лёд",
+      "city": "Хабаровск",
+      "capacity": 3600,
+      "deletedAt": "2026-01-12T10:00:00.000Z"
+    }
+  ],
+  "achievements": [
+    {
+      "id": 1,
+      "name": "Кубок Гагарина",
+      "description": "Победа в плей-офф лиги",
+      "year": 2024,
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Лучший бомбардир сезона",
+      "description": "Больше всех набранных очков",
+      "year": 2025,
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Лучший вратарь сезона",
+      "description": "Наименьший коэффициент пропущенных шайб",
+      "year": 2025,
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Самый ценный игрок",
+      "description": "Приз игрокам, определившим исход серии",
+      "year": 2024,
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Новичок года",
+      "description": "Лучший дебютант лиги",
+      "year": 2023,
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "Лучший защитник",
+      "description": "Награда за игру в обороне",
+      "year": 2025,
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "Мастер спорта",
+      "description": "Спортивное звание за достижения",
+      "year": 2022,
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "Заслуженный тренер",
+      "description": "Звание за подготовку игроков",
+      "year": 2021,
+      "deletedAt": null
+    },
+    {
+      "id": 9,
+      "name": "Кубок мира",
+      "description": "Победа на международном турнире",
+      "year": 2019,
+      "deletedAt": null
+    },
+    {
+      "id": 10,
+      "name": "Символическая сборная",
+      "description": "Включение в сборную сезона",
+      "year": 2025,
+      "deletedAt": null
+    },
+    {
+      "id": 11,
+      "name": "Кубок Вызова",
+      "description": "Упразднённый турнир",
+      "year": 2018,
+      "deletedAt": "2026-01-12T10:00:00.000Z"
+    }
+  ],
+  "teams": [
+    {
+      "id": 1,
+      "name": "Медведи",
+      "city": "Москва",
+      "foundedYear": 2004,
+      "arenaId": 1,
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Бурые Медведи",
+      "city": "Москва",
+      "foundedYear": 1998,
+      "arenaId": 2,
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Ледяные Короли",
+      "city": "Зеленогорск",
+      "foundedYear": 2011,
+      "arenaId": 3,
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Алмата",
+      "city": "Алматы",
+      "foundedYear": 2006,
+      "arenaId": 4,
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Факел",
+      "city": "Тверь",
+      "foundedYear": 1987,
+      "arenaId": 5,
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "Титан",
+      "city": "Московская область",
+      "foundedYear": 1995,
+      "arenaId": 6,
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "Арсенал",
+      "city": "Тула",
+      "foundedYear": 2008,
+      "arenaId": 7,
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "Химик",
+      "city": "Воскресенск",
+      "foundedYear": 1953,
+      "arenaId": 8,
+      "deletedAt": null
+    },
+    {
+      "id": 9,
+      "name": "Сборная Канады",
+      "city": "Монреаль",
+      "foundedYear": 1914,
+      "arenaId": 9,
+      "deletedAt": null
+    },
+    {
+      "id": 10,
+      "name": "Металлист",
+      "city": "Магнитогорск",
+      "foundedYear": 1955,
+      "arenaId": 10,
+      "deletedAt": null
+    },
+    {
+      "id": 11,
+      "name": "Русь",
+      "city": "Москва",
+      "foundedYear": 2005,
+      "arenaId": 11,
+      "deletedAt": null
+    },
+    {
+      "id": 12,
+      "name": "Колизей",
+      "city": "Санкт-Петербург",
+      "foundedYear": 2013,
+      "arenaId": 12,
+      "deletedAt": null
+    },
+    {
+      "id": 13,
+      "name": "Атлант",
+      "city": "Мытищи",
+      "foundedYear": 2009,
+      "arenaId": 6,
+      "deletedAt": null
+    },
+    {
+      "id": 14,
+      "name": "Огни",
+      "city": "Казань",
+      "foundedYear": 2015,
+      "arenaId": 13,
+      "deletedAt": null
+    },
+    {
+      "id": 15,
+      "name": "Беркуты",
+      "city": "Хабаровск",
+      "foundedYear": 2001,
+      "arenaId": 14,
+      "deletedAt": "2026-01-12T10:00:00.000Z"
+    }
+  ],
+  "players": [
+    {
+      "id": 1,
+      "name": "Сергей Матвеев",
+      "description": "Главный тренер, воспитатель школы «Медведей»",
+      "price": 25000,
+      "category": "Тренер",
+      "teamId": 1,
+      "achievementIds": [
+        8,
+        7
+      ],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 1,
+        "number": 101,
+        "email": "player1@hockey.example",
+        "salary": 25000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 2,
+      "name": "Александр Костров",
+      "description": "Нападающий первого звена, капитан команды",
+      "price": 3000,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [
+        1,
+        4
+      ],
+      "jerseyNumber": 56,
+      "contract": {
+        "id": 2,
+        "number": 102,
+        "email": "player2@hockey.example",
+        "salary": 3000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 3,
+      "name": "Михаил Пономарёв",
+      "description": "Защитник, надёжен в меньшинстве",
+      "price": 5000,
+      "category": "Защитник",
+      "teamId": 2,
+      "achievementIds": [
+        6
+      ],
+      "jerseyNumber": 89,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 4,
+      "name": "Андрей Кисляк",
+      "description": "Нападающий, лучший бомбардир прошлого сезона",
+      "price": 7000,
+      "category": "Нападающий",
+      "teamId": 3,
+      "achievementIds": [
+        2,
+        10
+      ],
+      "jerseyNumber": 77,
+      "contract": {
+        "id": 3,
+        "number": 103,
+        "email": "player3@hockey.example",
+        "salary": 7000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 5,
+      "name": "Антон Антипов",
+      "description": "Нападающий, силовой форвард",
+      "price": 5600,
+      "category": "Нападающий",
+      "teamId": 3,
+      "achievementIds": [
+        1
+      ],
+      "jerseyNumber": 67,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 6,
+      "name": "Георгий Бушманов",
+      "description": "Нападающий, быстро выходит из обороны",
+      "price": 5000,
+      "category": "Нападающий",
+      "teamId": 4,
+      "achievementIds": [
+        5
+      ],
+      "jerseyNumber": 1,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 7,
+      "name": "Игорь Дрозд",
+      "description": "Нападающий третьего звена",
+      "price": 4500,
+      "category": "Нападающий",
+      "teamId": 4,
+      "achievementIds": [],
+      "jerseyNumber": 19,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 8,
+      "name": "Руслан Жданов",
+      "description": "Тренер, отвечает за физическую подготовку",
+      "price": 18000,
+      "category": "Тренер",
+      "teamId": 2,
+      "achievementIds": [
+        8
+      ],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 4,
+        "number": 104,
+        "email": "player4@hockey.example",
+        "salary": 18000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 9,
+      "name": "Борис Никитин",
+      "description": "Защитник, блокирует броски",
+      "price": 4500,
+      "category": "Защитник",
+      "teamId": 2,
+      "achievementIds": [
+        6,
+        7
+      ],
+      "jerseyNumber": 44,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 10,
+      "name": "Семен Бакин",
+      "description": "Вратарь, первый номер команды",
+      "price": 7000,
+      "category": "Вратарь",
+      "teamId": 1,
+      "achievementIds": [
+        3,
+        9
+      ],
+      "jerseyNumber": 55,
+      "contract": {
+        "id": 5,
+        "number": 105,
+        "email": "player5@hockey.example",
+        "salary": 7000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 11,
+      "name": "Иван Савчук",
+      "description": "Вратарь, уверенно играет на выходе",
+      "price": 4500,
+      "category": "Вратарь",
+      "teamId": 2,
+      "achievementIds": [
+        3
+      ],
+      "jerseyNumber": 45,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 12,
+      "name": "Егор Щукин",
+      "description": "Нападающий, перспективное звено клуба",
+      "price": 5600,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [
+        5,
+        10
+      ],
+      "jerseyNumber": 27,
+      "contract": {
+        "id": 6,
+        "number": 106,
+        "email": "player6@hockey.example",
+        "salary": 5600,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 13,
+      "name": "Дмитрий Щукин",
+      "description": "Вратарь с опытом игры в КХЛ",
+      "price": 5000,
+      "category": "Вратарь",
+      "teamId": 5,
+      "achievementIds": [],
+      "jerseyNumber": 14,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 14,
+      "name": "Евгений Царев",
+      "description": "Нападающий, сильный щелчок от синей линии",
+      "price": 7000,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [
+        2
+      ],
+      "jerseyNumber": 23,
+      "contract": {
+        "id": 7,
+        "number": 107,
+        "email": "player7@hockey.example",
+        "salary": 7000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 15,
+      "name": "Александр Точилин",
+      "description": "Тренер вратарей",
+      "price": 13000,
+      "category": "Тренер",
+      "teamId": 6,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": null,
+      "deletedAt": "2026-01-12T10:00:00.000Z"
+    },
+    {
+      "id": 16,
+      "name": "Алексей Смирнов",
+      "description": "Защитник, играет в большинстве",
+      "price": 4500,
+      "category": "Защитник",
+      "teamId": 7,
+      "achievementIds": [
+        6
+      ],
+      "jerseyNumber": 47,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 17,
+      "name": "Анатолий Жилин",
+      "description": "Спортивный директор, ведёт трансферные сделки",
+      "price": 23000,
+      "category": "Спортивный директор",
+      "teamId": 6,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 8,
+        "number": 108,
+        "email": "player8@hockey.example",
+        "salary": 23000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 18,
+      "name": "Вадим Казанцев",
+      "description": "Спортивный директор «Бурых Медведей»",
+      "price": 35000,
+      "category": "Спортивный директор",
+      "teamId": 2,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 9,
+        "number": 109,
+        "email": "player9@hockey.example",
+        "salary": 35000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 19,
+      "name": "Денис Васильев",
+      "description": "Нападающий, работает в меньшинстве",
+      "price": 4500,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [],
+      "jerseyNumber": 61,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 20,
+      "name": "Игорь Гаврилов",
+      "description": "Нападающий, быстрый каток",
+      "price": 4000,
+      "category": "Нападающий",
+      "teamId": 8,
+      "achievementIds": [],
+      "jerseyNumber": 8,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 21,
+      "name": "Степан Жарский",
+      "description": "Тренер, специалист по розыгрышу большинства",
+      "price": 16000,
+      "category": "Тренер",
+      "teamId": 8,
+      "achievementIds": [
+        8
+      ],
+      "jerseyNumber": null,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 22,
+      "name": "Томаш Бартович",
+      "description": "Тренер, чешская школа хоккея",
+      "price": 17000,
+      "category": "Тренер",
+      "teamId": 1,
+      "achievementIds": [
+        8,
+        9
+      ],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 10,
+        "number": 110,
+        "email": "player10@hockey.example",
+        "salary": 17000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 23,
+      "name": "Юрий Романенко",
+      "description": "Тренер, отвечает за оборону команды",
+      "price": 14000,
+      "category": "Тренер",
+      "teamId": 3,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 24,
+      "name": "Вадим Назаров",
+      "description": "Нападающий, забивает в контратаках",
+      "price": 5000,
+      "category": "Нападающий",
+      "teamId": 6,
+      "achievementIds": [],
+      "jerseyNumber": 91,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 25,
+      "name": "Максим Стрельцов",
+      "description": "Тренер, бывший игрок НХЛ",
+      "price": 19000,
+      "category": "Тренер",
+      "teamId": 3,
+      "achievementIds": [
+        1,
+        8
+      ],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 11,
+        "number": 111,
+        "email": "player11@hockey.example",
+        "salary": 19000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 26,
+      "name": "Валерий Сотников",
+      "description": "Спортивный директор, формирует бюджет клуба",
+      "price": 30000,
+      "category": "Спортивный директор",
+      "teamId": 6,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 27,
+      "name": "Илья Березин",
+      "description": "Нападающий второго звена",
+      "price": 5000,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [],
+      "jerseyNumber": 72,
+      "contract": {
+        "id": 12,
+        "number": 112,
+        "email": "player12@hockey.example",
+        "salary": 5000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 28,
+      "name": "Доменик Дюшарм",
+      "description": "Тренер молодежной хоккейной сборной Канады",
+      "price": 19000,
+      "category": "Тренер",
+      "teamId": 9,
+      "achievementIds": [
+        9,
+        8
+      ],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 13,
+        "number": 113,
+        "email": "player13@hockey.example",
+        "salary": 19000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 29,
+      "name": "Валерий Поляков",
+      "description": "Тренер, работает с молодыми игроками",
+      "price": 17000,
+      "category": "Тренер",
+      "teamId": 4,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 30,
+      "name": "Алексей Платонов",
+      "description": "Нападающий, хороший каток и техника",
+      "price": 4000,
+      "category": "Нападающий",
+      "teamId": 2,
+      "achievementIds": [
+        5
+      ],
+      "jerseyNumber": 87,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 31,
+      "name": "Виктория Каштанова",
+      "description": "Спортивный директор, ведёт переговоры о трансферах",
+      "price": 33000,
+      "category": "Спортивный директор",
+      "teamId": 1,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": {
+        "id": 14,
+        "number": 114,
+        "email": "player14@hockey.example",
+        "salary": 33000,
+        "signedAt": "2025-08-01T00:00:00.000Z",
+        "expiresAt": "2027-06-30T00:00:00.000Z"
+      },
+      "deletedAt": null
+    },
+    {
+      "id": 32,
+      "name": "Кузьма Шмелев",
+      "description": "Вратарь, третий номер команды",
+      "price": 5000,
+      "category": "Вратарь",
+      "teamId": 1,
+      "achievementIds": [],
+      "jerseyNumber": 54,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 33,
+      "name": "Владислав Куницын",
+      "description": "Нападающий, забивает бросками с кистей",
+      "price": 4500,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [],
+      "jerseyNumber": 18,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 34,
+      "name": "Кирилл Емельянов",
+      "description": "Нападающий, лидер второго звена",
+      "price": 4000,
+      "category": "Нападающий",
+      "teamId": 1,
+      "achievementIds": [
+        10
+      ],
+      "jerseyNumber": 15,
+      "contract": null,
+      "deletedAt": null
+    },
+    {
+      "id": 35,
+      "name": "Иван Качалов",
+      "description": "Тренер, готовит защитников",
+      "price": 20000,
+      "category": "Тренер",
+      "teamId": 10,
+      "achievementIds": [],
+      "jerseyNumber": null,
+      "contract": null,
+      "deletedAt": "2026-01-12T10:00:00.000Z"
+    }
+  ]
+}

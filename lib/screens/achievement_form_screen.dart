@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api_exceptions.dart';
 import '../models/achievement.dart';
 import '../repositories/achievement_repository.dart';
 import '../state/achievement_list_notifier.dart';
@@ -91,13 +92,19 @@ class _AchievementFormScreenState extends State<AchievementFormScreen> {
       year: Validators.parseInt(values['year']) ?? 0,
     );
 
-    if (_achievement == null) {
-      await repository.create(draft);
-    } else {
-      await repository.update(draft);
+    try {
+      if (_achievement == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(draft);
+      }
+      await model.load();
+      return const FormSubmitResult(true);
+    } on ValidationException catch (error) {
+      return FormSubmitResult.failure(error.errors);
+    } on ApiException catch (error) {
+      return FormSubmitResult.failure({'': error.message});
     }
-    await model.load();
-    return const FormSubmitResult(true);
   }
 
   @override

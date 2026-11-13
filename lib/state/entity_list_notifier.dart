@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/api_exceptions.dart';
 import '../models/list_query.dart';
 import '../models/page_result.dart';
 import 'load_status.dart';
@@ -58,8 +59,11 @@ abstract class EntityListNotifier<T extends Identifiable, Q extends ListQuery<Q>
     try {
       _result = await fetch(_query);
       _status = LoadStatus.success;
+    } on RequestCancelledException {
+      // Устаревший поиск отменён — ждём актуальный ответ.
+      return;
     } catch (e) {
-      _error = 'Не удалось загрузить список: $e';
+      _error = '$e';
       _status = LoadStatus.error;
     }
 

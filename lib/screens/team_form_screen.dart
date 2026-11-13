@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api_exceptions.dart';
 import '../models/team.dart';
 import '../repositories/team_repository.dart';
 import '../state/team_list_notifier.dart';
@@ -93,13 +94,19 @@ class _TeamFormScreenState extends State<TeamFormScreen> {
       arenaId: Validators.parseInt(values['arenaId']) ?? 0,
     );
 
-    if (_team == null) {
-      await repository.create(draft);
-    } else {
-      await repository.update(draft);
+    try {
+      if (_team == null) {
+        await repository.create(draft);
+      } else {
+        await repository.update(draft);
+      }
+      await model.load();
+      return const FormSubmitResult(true);
+    } on ValidationException catch (error) {
+      return FormSubmitResult.failure(error.errors);
+    } on ApiException catch (error) {
+      return FormSubmitResult.failure({'': error.message});
     }
-    await model.load();
-    return const FormSubmitResult(true);
   }
 
   @override

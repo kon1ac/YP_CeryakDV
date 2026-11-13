@@ -61,10 +61,17 @@ class Arena implements Identifiable {
         name: json['name'] as String? ?? '',
         city: json['city'] as String? ?? '',
         capacity: json['capacity'] as int? ?? 0,
+        teamCount: json['teamCount'] as int? ?? 0,
         deletedAt: json['deletedAt'] == null
             ? null
             : DateTime.tryParse(json['deletedAt'] as String),
       );
+
+  Map<String, dynamic> toApiBody() => {
+        'name': name,
+        'city': city,
+        'capacity': capacity,
+      };
 
   @override
   String toString() => 'Arena($id, $name)';

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../core/api_exceptions.dart';
 import '../models/team.dart';
 import '../models/team_query.dart';
 import '../state/load_status.dart';
@@ -469,7 +470,15 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
     if (confirmed == null || !confirmed || !mounted) return;
 
     final model = context.read<TeamListNotifier>();
-    await (physical ? model.hardDelete(team.id) : model.softDelete(team.id));
+    try {
+      await (physical ? model.hardDelete(team.id) : model.softDelete(team.id));
+    } on ConflictException catch (error) {
+      _toast(error.message);
+      return;
+    } on ApiException catch (error) {
+      _toast(error.message);
+      return;
+    }
     _toast(physical
         ? 'Команда «${team.name}» удалена'
         : 'Команда «${team.name}» расформирована');

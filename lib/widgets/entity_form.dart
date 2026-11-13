@@ -304,12 +304,16 @@ class _EntityFormScreenState extends State<EntityFormScreen> {
       return;
     }
 
-    setState(() => _serverErrors.addAll(result.errors));
+    final general = result.errors[''];
+    final fieldErrors = Map<String, String>.from(result.errors)..remove('');
+    setState(() => _serverErrors.addAll(fieldErrors));
     _formKey.currentState?.validate();
-    if (result.errors.isEmpty) {
+    if (general != null || fieldErrors.isEmpty) {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(const SnackBar(content: Text('Не удалось сохранить')));
+        ..showSnackBar(
+          SnackBar(content: Text(general ?? 'Не удалось сохранить')),
+        );
     }
   }
 
