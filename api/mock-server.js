@@ -31,7 +31,16 @@ const ACCESS_TTL = Number(arg('ttl', 900));
 const REFRESH_TTL = 60 * 60 * 24 * 7;
 const SEED_FILE = path.join(__dirname, 'seed.json');
 
-const COLLECTIONS = ['players', 'teams', 'arenas', 'achievements'];
+const COLLECTIONS = [
+  'players',
+  'teams',
+  'arenas',
+  'achievements',
+  'offers',
+  'reports',
+  'shortlist',
+  'users',
+];
 const PLAYER_CATEGORIES = [
   'Нападающий',
   'Защитник',
@@ -39,6 +48,21 @@ const PLAYER_CATEGORIES = [
   'Тренер',
   'Спортивный директор',
 ];
+const PLAYER_STATUSES = ['in_roster', 'injured', 'suspended', 'free_agent'];
+const OFFER_STATUSES = ['pending', 'accepted', 'rejected'];
+const REPORT_VERDICTS = ['recommend', 'watch', 'reject'];
+const PATH_TO_COLLECTION = {
+  players: 'players',
+  teams: 'teams',
+  arenas: 'arenas',
+  achievements: 'achievements',
+  offers: 'offers',
+  'transfer-offers': 'offers',
+  reports: 'reports',
+  'scout-reports': 'reports',
+  shortlist: 'shortlist',
+  users: 'users',
+};
 
 let db;
 
@@ -91,11 +115,15 @@ function loadSeed() {
     achievements: [],
     teams: [],
     players: [],
+    offers: [],
+    reports: [],
+    shortlist: [],
     users: [],
     refreshTokens: new Set(),
   };
 
-  for (const col of COLLECTIONS) {
+  const seedCollections = ['arenas', 'achievements', 'teams', 'players'];
+  for (const col of seedCollections) {
     for (const row of raw[col] || []) {
       db.seq[col] = Math.max(db.seq[col] || 0, row.id);
       const item = {
@@ -103,7 +131,14 @@ function loadSeed() {
         createdAt: row.createdAt || new Date().toISOString(),
         deletedAt: row.deletedAt ?? null,
       };
-      if (col === 'players') item.achievementIds = row.achievementIds || [];
+      if (col === 'players') {
+        item.achievementIds = row.achievementIds || [];
+        item.status = PLAYER_STATUSES.includes(row.status) ? row.status : 'in_roster';
+        item.notes = row.notes || '';
+      }
+      if (col === 'teams') {
+        item.sponsorUserId = row.sponsorUserId ?? 2;
+      }
       db[col].push(item);
     }
   }
@@ -121,26 +156,66 @@ function loadSeed() {
     },
     {
       id: 2,
-      username: 'librarian',
-      passwordHash: hash('librarian123'),
-      fullName: 'Менеджер лиги',
-      email: 'manager@hockey.local',
-      role: 'librarian',
+      username: 'sponsor',
+      passwordHash: hash('sponsor123'),
+      fullName: 'Спонсор Медведей',
+      email: 'sponsor@hockey.local',
+      role: 'sponsor',
       createdAt: new Date().toISOString(),
       deletedAt: null,
     },
     {
       id: 3,
-      username: 'reader',
-      passwordHash: hash('reader123'),
-      fullName: 'Наблюдатель',
-      email: 'reader@hockey.local',
-      role: 'reader',
+      username: 'scout',
+      passwordHash: hash('scout123'),
+      fullName: 'Скаут лиги',
+      email: 'scout@hockey.local',
+      role: 'scout',
       createdAt: new Date().toISOString(),
       deletedAt: null,
     },
   ];
   db.seq.users = 3;
+
+  // Демо-данные для новых сущностей
+  db.offers = [
+    {
+      id: 1,
+      playerId: 2,
+      teamId: 1,
+      sponsorUserId: 2,
+      salary: 3500,
+      message: 'Хотим усилить первое звено',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+    },
+  ];
+  db.seq.offers = 1;
+  db.reports = [
+    {
+      id: 1,
+      playerId: 2,
+      scoutUserId: 3,
+      rating: 8,
+      verdict: 'recommend',
+      summary: 'Сильный нападающий, готов к топ-клубу.',
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+    },
+  ];
+  db.seq.reports = 1;
+  db.shortlist = [
+    {
+      id: 1,
+      scoutUserId: 3,
+      playerId: 2,
+      note: 'Приоритет на трансферное окно',
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+    },
+  ];
+  db.seq.shortlist = 1;
 }
 
 function teamNameById(id) {
@@ -219,6 +294,8 @@ function expandPlayer(p) {
     achievementIds: p.achievementIds || [],
     achievements,
     jerseyNumber: p.jerseyNumber ?? null,
+    status: p.status || 'in_roster',
+    notes: p.notes || '',
     contract: p.contract ? { ...p.contract } : null,
     createdAt: p.createdAt,
     deletedAt: p.deletedAt,
@@ -233,9 +310,56 @@ function expandTeam(t) {
     foundedYear: t.foundedYear,
     arenaId: t.arenaId,
     arenaName: arenaNameById(t.arenaId),
+    sponsorUserId: t.sponsorUserId ?? null,
     rosterSize: activePlayerCount(t.id),
     createdAt: t.createdAt,
     deletedAt: t.deletedAt,
+  };
+}
+
+function expandOffer(o) {
+  const player = db.players.find((p) => p.id === o.playerId);
+  const team = db.teams.find((t) => t.id === o.teamId);
+  return {
+    id: o.id,
+    playerId: o.playerId,
+    playerName: player?.name || '',
+    teamId: o.teamId,
+    teamName: team?.name || '',
+    sponsorUserId: o.sponsorUserId,
+    salary: o.salary,
+    message: o.message || '',
+    status: o.status,
+    createdAt: o.createdAt,
+    deletedAt: o.deletedAt,
+  };
+}
+
+function expandReport(r) {
+  const player = db.players.find((p) => p.id === r.playerId);
+  return {
+    id: r.id,
+    playerId: r.playerId,
+    playerName: player?.name || '',
+    scoutUserId: r.scoutUserId,
+    rating: r.rating,
+    verdict: r.verdict,
+    summary: r.summary || '',
+    createdAt: r.createdAt,
+    deletedAt: r.deletedAt,
+  };
+}
+
+function expandShortlist(s) {
+  const player = db.players.find((p) => p.id === s.playerId);
+  return {
+    id: s.id,
+    scoutUserId: s.scoutUserId,
+    playerId: s.playerId,
+    playerName: player?.name || '',
+    note: s.note || '',
+    createdAt: s.createdAt,
+    deletedAt: s.deletedAt,
   };
 }
 
@@ -283,6 +407,10 @@ const EXPANDERS = {
   arenas: expandArena,
   achievements: expandAchievement,
   contracts: expandContract,
+  offers: expandOffer,
+  reports: expandReport,
+  shortlist: expandShortlist,
+  users: expandUser,
 };
 
 // ─────────────────────────── фильтры и сортировка ───────────────────────────
@@ -294,6 +422,8 @@ function searchableText(collection, item) {
         item.name,
         item.description,
         item.category,
+        item.status ?? '',
+        item.notes ?? '',
         item.jerseyNumber ?? '',
         item.contract?.email ?? '',
       ].join(' ');
@@ -305,6 +435,14 @@ function searchableText(collection, item) {
       return [item.name, item.description].join(' ');
     case 'contracts':
       return [item.email, item.playerName, item.number].join(' ');
+    case 'offers':
+      return [item.message, item.status, item.playerId, item.teamId].join(' ');
+    case 'reports':
+      return [item.summary, item.verdict, item.playerId].join(' ');
+    case 'shortlist':
+      return [item.note, item.playerId].join(' ');
+    case 'users':
+      return [item.username, item.fullName, item.email, item.role].join(' ');
     default:
       return '';
   }
@@ -322,6 +460,7 @@ function applyFilters(collection, rows, q) {
 
   if (collection === 'players') {
     if (q.category) result = result.filter((p) => p.category === q.category);
+    if (q.status) result = result.filter((p) => p.status === q.status);
     if (q.teamId) result = result.filter((p) => p.teamId === Number(q.teamId));
     if (q.achievementId) {
       const aid = Number(q.achievementId);
@@ -329,6 +468,34 @@ function applyFilters(collection, rows, q) {
     }
     if (q.priceFrom) result = result.filter((p) => p.price >= Number(q.priceFrom));
     if (q.priceTo) result = result.filter((p) => p.price <= Number(q.priceTo));
+  }
+
+  if (collection === 'offers') {
+    if (q.status) result = result.filter((o) => o.status === q.status);
+    if (q.playerId) result = result.filter((o) => o.playerId === Number(q.playerId));
+    if (q.teamId) result = result.filter((o) => o.teamId === Number(q.teamId));
+    if (q.sponsorUserId) {
+      result = result.filter((o) => o.sponsorUserId === Number(q.sponsorUserId));
+    }
+  }
+
+  if (collection === 'reports') {
+    if (q.playerId) result = result.filter((r) => r.playerId === Number(q.playerId));
+    if (q.scoutUserId) {
+      result = result.filter((r) => r.scoutUserId === Number(q.scoutUserId));
+    }
+    if (q.verdict) result = result.filter((r) => r.verdict === q.verdict);
+  }
+
+  if (collection === 'shortlist') {
+    if (q.scoutUserId) {
+      result = result.filter((s) => s.scoutUserId === Number(q.scoutUserId));
+    }
+    if (q.playerId) result = result.filter((s) => s.playerId === Number(q.playerId));
+  }
+
+  if (collection === 'users') {
+    if (q.role) result = result.filter((u) => u.role === q.role);
   }
 
   if (collection === 'teams') {
@@ -501,6 +668,13 @@ function validate(collection, body, id = null) {
         e.jerseyNumber = 'Этот номер уже занят в лиге';
       }
     }
+    const status = str(body.status) || 'in_roster';
+    if (!PLAYER_STATUSES.includes(status)) {
+      e.status = 'Недопустимый статус игрока';
+    }
+    if (body.notes != null && String(body.notes).length > 2000) {
+      e.notes = 'Заметка не длиннее 2000 символов';
+    }
     if (body.contract) {
       const c = body.contract;
       if (!str(c.email)) e['contract.email'] = 'Укажите email контракта';
@@ -555,6 +729,81 @@ function validate(collection, body, id = null) {
     if (!body.signedAt) e.signedAt = 'Укажите дату подписания';
   }
 
+  if (collection === 'offers') {
+    const playerId = Number(body.playerId);
+    const teamId = Number(body.teamId);
+    if (!Number.isInteger(playerId) || !db.players.find((p) => p.id === playerId && !p.deletedAt)) {
+      e.playerId = 'Укажите существующего игрока';
+    }
+    if (!Number.isInteger(teamId) || !db.teams.find((t) => t.id === teamId && !t.deletedAt)) {
+      e.teamId = 'Укажите существующую команду';
+    }
+    const salary = Number(body.salary);
+    if (Number.isNaN(salary) || salary < 0) e.salary = 'Укажите предлагаемый оклад';
+    const st = str(body.status) || 'pending';
+    if (!OFFER_STATUSES.includes(st)) e.status = 'Недопустимый статус оффера';
+  }
+
+  if (collection === 'reports') {
+    const playerId = Number(body.playerId);
+    if (!Number.isInteger(playerId) || !db.players.find((p) => p.id === playerId && !p.deletedAt)) {
+      e.playerId = 'Укажите существующего игрока';
+    }
+    const rating = Number(body.rating);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
+      e.rating = 'Оценка — целое от 1 до 10';
+    }
+    if (!REPORT_VERDICTS.includes(str(body.verdict))) {
+      e.verdict = 'Укажите вердикт: recommend, watch или reject';
+    }
+    if (!str(body.summary)) e.summary = 'Добавьте текст отчёта';
+    else if (str(body.summary).length > 2000) e.summary = 'Не длиннее 2000 символов';
+  }
+
+  if (collection === 'shortlist') {
+    const playerId = Number(body.playerId);
+    if (!Number.isInteger(playerId) || !db.players.find((p) => p.id === playerId && !p.deletedAt)) {
+      e.playerId = 'Укажите существующего игрока';
+    }
+    if (body.note != null && String(body.note).length > 500) {
+      e.note = 'Заметка не длиннее 500 символов';
+    }
+  }
+
+  if (collection === 'users') {
+    if (!str(body.username) || str(body.username).length < 3) {
+      e.username = 'Логин не короче трёх символов';
+    } else {
+      const taken = db.users.find(
+        (u) =>
+          !u.deletedAt &&
+          u.username.toLowerCase() === str(body.username).toLowerCase() &&
+          u.id !== id,
+      );
+      if (taken) e.username = 'Такой логин уже занят';
+    }
+    if (!['admin', 'sponsor', 'scout'].includes(str(body.role))) {
+      e.role = 'Роль: admin, sponsor или scout';
+    }
+    if (!str(body.fullName)) e.fullName = 'Укажите ФИО';
+    // Создание — пароль обязателен; при правке можно оставить пустым.
+    if (id == null) {
+      const password = String(body.password || '');
+      if (password.length < 8) e.password = 'Пароль не короче восьми символов';
+      else if (!/\d/.test(password)) e.password = 'Пароль должен содержать цифру';
+      else if (!/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\/;'`~]/.test(password)) {
+        e.password = 'Пароль должен содержать специальный символ';
+      }
+    } else if (body.password != null && String(body.password).length > 0) {
+      const password = String(body.password);
+      if (password.length < 8) e.password = 'Пароль не короче восьми символов';
+      else if (!/\d/.test(password)) e.password = 'Пароль должен содержать цифру';
+      else if (!/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\/;'`~]/.test(password)) {
+        e.password = 'Пароль должен содержать специальный символ';
+      }
+    }
+  }
+
   return e;
 }
 
@@ -589,6 +838,10 @@ function normalize(collection, body) {
           body.jerseyNumber == null || body.jerseyNumber === ''
             ? null
             : num(body.jerseyNumber),
+        status: PLAYER_STATUSES.includes(str(body.status))
+          ? str(body.status)
+          : 'in_roster',
+        notes: str(body.notes).slice(0, 2000),
         contract,
       };
     }
@@ -598,6 +851,42 @@ function normalize(collection, body) {
         city: str(body.city),
         foundedYear: num(body.foundedYear) ?? 0,
         arenaId: num(body.arenaId),
+        sponsorUserId: num(body.sponsorUserId),
+      };
+    case 'offers':
+      return {
+        playerId: num(body.playerId),
+        teamId: num(body.teamId),
+        sponsorUserId: num(body.sponsorUserId),
+        salary: num(body.salary) ?? 0,
+        message: str(body.message),
+        status: OFFER_STATUSES.includes(str(body.status))
+          ? str(body.status)
+          : 'pending',
+      };
+    case 'reports':
+      return {
+        playerId: num(body.playerId),
+        scoutUserId: num(body.scoutUserId),
+        rating: num(body.rating) ?? 1,
+        verdict: str(body.verdict),
+        summary: str(body.summary).slice(0, 2000),
+      };
+    case 'shortlist':
+      return {
+        scoutUserId: num(body.scoutUserId),
+        playerId: num(body.playerId),
+        note: str(body.note).slice(0, 500),
+      };
+    case 'users':
+      return {
+        username: str(body.username),
+        fullName: str(body.fullName),
+        email: str(body.email),
+        role: str(body.role),
+        ...(body.password
+          ? { passwordHash: hash(String(body.password)) }
+          : {}),
       };
     case 'arenas':
       return {
@@ -663,34 +952,33 @@ function resolveUser(req) {
     if (!payload || payload.type !== 'access') return null;
     return db.users.find((u) => u.id === payload.sub && !u.deletedAt) || null;
   }
-  if (!header) {
-    return {
-      id: -1,
-      username: '_anonymous',
-      fullName: 'Аноним (учебный режим)',
-      role: 'librarian',
-      _implicit: true,
-    };
-  }
   return null;
 }
 
-const ROLE_LEVEL = { reader: 1, librarian: 2, admin: 3 };
+const ROLE_LEVEL = { scout: 1, sponsor: 2, admin: 3 };
 
 function requireRole(res, user, minRole) {
   if (!user) {
     fail(res, 401, 'Требуется аутентификация');
     return false;
   }
-  if (user._implicit && minRole === 'admin') {
-    fail(res, 403, 'Операция доступна начиная с роли «admin» (нужен Bearer-токен)');
-    return false;
-  }
-  if (ROLE_LEVEL[user.role] < ROLE_LEVEL[minRole]) {
+  if ((ROLE_LEVEL[user.role] || 0) < (ROLE_LEVEL[minRole] || 99)) {
     fail(res, 403, `Операция доступна начиная с роли «${minRole}»`);
     return false;
   }
   return true;
+}
+
+/** Минимальная роль для записи в коллекцию. */
+function writeMinRole(collection) {
+  // Справочники лиги и пользователи — только админ.
+  if (collection === 'users' || collection === 'arenas' || collection === 'achievements') {
+    return 'admin';
+  }
+  if (collection === 'reports' || collection === 'shortlist') return 'scout';
+  if (collection === 'offers') return 'sponsor';
+  // Игроки, команды — спонсор и выше.
+  return 'sponsor';
 }
 
 function hardDeleteRow(collection, id) {
@@ -733,7 +1021,7 @@ async function handleContracts(req, res, url, method, user, q) {
 
   let m = path.match(/^\/api\/contracts\/bulk-delete$/);
   if (m && method === 'POST') {
-    if (!requireRole(res, user, 'librarian')) return;
+    if (!requireRole(res, user, 'sponsor')) return;
     const body = await readBody(req);
     const ids = Array.isArray(body?.ids) ? body.ids.map(Number) : [];
     const physical = body?.physical === true;
@@ -775,6 +1063,7 @@ async function handleContracts(req, res, url, method, user, q) {
     }
 
     if (method === 'GET') {
+      if (!requireRole(res, user, 'scout')) return;
       const entry = contractEntries().find(
         (e) => e.id === contractId && (q.includeDeleted === 'true' || !e.deletedAt),
       );
@@ -783,7 +1072,7 @@ async function handleContracts(req, res, url, method, user, q) {
     }
 
     if (method === 'PUT' || method === 'PATCH') {
-      if (!requireRole(res, user, 'librarian')) return;
+      if (!requireRole(res, user, 'sponsor')) return;
       const body = await readBody(req);
       if (!body) return fail(res, 400, 'Тело запроса не является корректным JSON');
       const merged = {
@@ -810,7 +1099,7 @@ async function handleContracts(req, res, url, method, user, q) {
 
     if (method === 'DELETE') {
       const hard = q.hard === 'true';
-      if (!requireRole(res, user, hard ? 'admin' : 'librarian')) return;
+      if (!requireRole(res, user, hard ? 'admin' : 'sponsor')) return;
       if (hard) {
         player.contract = null;
       } else {
@@ -821,6 +1110,7 @@ async function handleContracts(req, res, url, method, user, q) {
   }
 
   if (path === '/api/contracts' && method === 'GET') {
+    if (!requireRole(res, user, 'scout')) return;
     let rows = contractEntries();
     if (q.includeDeleted !== 'true') rows = rows.filter((e) => !e.deletedAt);
     rows = applyFilters('contracts', rows, q);
@@ -862,13 +1152,16 @@ async function handle(req, res, url) {
     else if (db.users.find((u) => u.username === username)) errors.username = 'Такой логин уже занят';
     if (password.length < 8) errors.password = 'Пароль не короче восьми символов';
     else if (!/\d/.test(password)) errors.password = 'Пароль должен содержать цифру';
+    else if (!/[!@#$%^&*(),.?":{}|<>_\-+=\[\]\\/;'`~]/.test(password)) {
+      errors.password = 'Пароль должен содержать специальный символ';
+    }
     if (Object.keys(errors).length) return send(res, 422, { message: 'Ошибка валидации', errors });
     const id = push('users', {
       username,
       passwordHash: hash(password),
       fullName: String(body.fullName || username),
       email: String(body.email || ''),
-      role: 'reader',
+      role: 'scout',
     });
     return send(res, 201, expandUser(db.users.find((u) => u.id === id)));
   }
@@ -925,11 +1218,13 @@ async function handle(req, res, url) {
   const contractHandled = await handleContracts(req, res, url, method, user, q);
   if (contractHandled !== false) return;
 
-  const bulk = path.match(/^\/api\/([a-z]+)\/bulk-delete$/);
+  const bulk = path.match(/^\/api\/([a-z-]+)\/bulk-delete$/);
   if (bulk && method === 'POST') {
-    const collection = bulk[1];
-    if (!COLLECTIONS.includes(collection)) return fail(res, 404, 'Ресурс не найден');
-    if (!requireRole(res, user, 'librarian')) return;
+    const collection = PATH_TO_COLLECTION[bulk[1]];
+    if (!collection || !COLLECTIONS.includes(collection)) {
+      return fail(res, 404, 'Ресурс не найден');
+    }
+    if (!requireRole(res, user, writeMinRole(collection))) return;
     const body = await readBody(req);
     const ids = Array.isArray(body?.ids) ? body.ids.map(Number) : [];
     const physical = body?.physical === true;
@@ -957,15 +1252,17 @@ async function handle(req, res, url) {
     return send(res, 200, { deleted });
   }
 
-  const m = path.match(/^\/api\/([a-z]+)(?:\/(\d+))?(?:\/(restore))?$/);
+  const m = path.match(/^\/api\/([a-z-]+)(?:\/(\d+))?(?:\/(restore))?$/);
   if (m) {
-    const collection = m[1];
+    const collection = PATH_TO_COLLECTION[m[1]];
     const id = m[2] ? Number(m[2]) : null;
     const action = m[3] || null;
 
-    if (!COLLECTIONS.includes(collection)) return fail(res, 404, 'Ресурс не найден');
+    if (!collection || !COLLECTIONS.includes(collection) || !db[collection]) {
+      return fail(res, 404, 'Ресурс не найден');
+    }
     const expand = EXPANDERS[collection];
-    const sortFallback = collection === 'players' ? 'name' : 'name';
+    const sortFallback = 'name';
 
     if (action === 'restore' && method === 'POST') {
       if (!requireRole(res, user, 'admin')) return;
@@ -976,6 +1273,9 @@ async function handle(req, res, url) {
     }
 
     if (id === null && method === 'GET') {
+      if (collection === 'users') {
+        if (!requireRole(res, user, 'admin')) return;
+      } else if (!requireRole(res, user, 'scout')) return;
       let rows = db[collection];
       if (q.includeDeleted !== 'true') rows = rows.filter((x) => !x.deletedAt);
       rows = applyFilters(collection, rows, q);
@@ -985,6 +1285,9 @@ async function handle(req, res, url) {
     }
 
     if (id !== null && method === 'GET') {
+      if (collection === 'users') {
+        if (!requireRole(res, user, 'admin')) return;
+      } else if (!requireRole(res, user, 'scout')) return;
       const row = db[collection].find(
         (x) => x.id === id && (q.includeDeleted === 'true' || !x.deletedAt),
       );
@@ -993,14 +1296,32 @@ async function handle(req, res, url) {
     }
 
     if (id === null && method === 'POST') {
-      if (!requireRole(res, user, 'librarian')) return;
+      if (!requireRole(res, user, writeMinRole(collection))) return;
       const body = await readBody(req);
       if (!body) return fail(res, 400, 'Тело запроса не является корректным JSON');
+      if (collection === 'offers') body.sponsorUserId = body.sponsorUserId || user.id;
+      if (collection === 'reports' || collection === 'shortlist') {
+        body.scoutUserId = body.scoutUserId || user.id;
+      }
       const errors = validate(collection, body);
       if (Object.keys(errors).length) return send(res, 422, { message: 'Ошибка валидации', errors });
       const data = normalize(collection, body);
       if (collection === 'players' && data.contract && !data.contract.id) {
         data.contract.id = nextContractId();
+      }
+      if (collection === 'shortlist') {
+        const dup = db.shortlist.find(
+          (s) =>
+            !s.deletedAt &&
+            s.scoutUserId === data.scoutUserId &&
+            s.playerId === data.playerId,
+        );
+        if (dup) {
+          return send(res, 409, {
+            message: 'Игрок уже в шортлисте',
+            count: 1,
+          });
+        }
       }
       const newId = push(collection, data);
       const row = db[collection].find((x) => x.id === newId);
@@ -1008,7 +1329,7 @@ async function handle(req, res, url) {
     }
 
     if (id !== null && (method === 'PUT' || method === 'PATCH')) {
-      if (!requireRole(res, user, 'librarian')) return;
+      if (!requireRole(res, user, writeMinRole(collection))) return;
       const row = db[collection].find((x) => x.id === id && !x.deletedAt);
       if (!row) return fail(res, 404, 'Объект не найден');
       const body = await readBody(req);
@@ -1018,11 +1339,18 @@ async function handle(req, res, url) {
           ? { ...row, ...body, contract: body.contract ?? row.contract }
           : body;
       if (body.clearContract) merged.contract = null;
+      if (collection === 'offers') merged.sponsorUserId = row.sponsorUserId;
+      if (collection === 'reports' || collection === 'shortlist') {
+        merged.scoutUserId = row.scoutUserId;
+      }
       const errors = validate(collection, merged, id);
       if (Object.keys(errors).length) return send(res, 422, { message: 'Ошибка валидации', errors });
       const normalized = normalize(collection, { ...merged, id });
       if (normalized.contract && row.contract) {
         normalized.contract.id = row.contract.id;
+      }
+      if (collection === 'users' && !normalized.passwordHash) {
+        delete normalized.passwordHash;
       }
       Object.assign(row, normalized);
       return send(res, 200, expand(row));
@@ -1030,7 +1358,7 @@ async function handle(req, res, url) {
 
     if (id !== null && method === 'DELETE') {
       const hard = q.hard === 'true';
-      if (!requireRole(res, user, hard ? 'admin' : 'librarian')) return;
+      if (!requireRole(res, user, hard ? 'admin' : writeMinRole(collection))) return;
       if (hard) {
         const result = hardDeleteRow(collection, id);
         if (result.error) return send(res, result.status, result.body);
@@ -1081,8 +1409,8 @@ server.listen(PORT, () => {
   console.log(`  Разрешённый источник: ${ORIGIN}`);
   console.log(`  Данные:               ${SEED_FILE}`);
   console.log('');
-  console.log('  Учётные записи:  admin/admin123   librarian/librarian123   reader/reader123');
-  console.log('  Без Authorization заголовка запись разрешена как librarian (учебный режим).');
+  console.log('  Учётные записи:  admin/admin123   sponsor/sponsor123   scout/scout123');
+  console.log('  Без Authorization заголовка нужен вход: admin / sponsor / scout.');
   console.log('  Сброс данных:    POST /api/__reset');
   console.log('  Здоровье:        GET /api/__health');
   console.log('');

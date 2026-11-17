@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/team.dart';
 import '../repositories/team_repository.dart';
+import '../state/auth_notifier.dart';
 import '../state/team_list_notifier.dart';
 import '../utils/format.dart';
 import '../widgets/entity_details.dart';
@@ -89,6 +90,9 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final team = _team;
+    final auth = context.watch<AuthNotifier>();
+    final canWrite = auth.canWriteCatalog;
+    final canHardDelete = auth.canManageUsers;
 
     return EntityDetailsScreen(
       title: 'Карточка команды',
@@ -97,12 +101,15 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
       error: _error,
       onRetry: _load,
       isDeleted: team?.isDeleted ?? false,
-      onEdit:
-          team == null ? null : () => context.go('/teams/${team.id}/edit'),
-      onRestore: team == null || !team.isDeleted
+      onEdit: team == null || !canWrite
+          ? null
+          : () => context.go('/teams/${team.id}/edit'),
+      onRestore: team == null || !team.isDeleted || !canHardDelete
           ? null
           : () => _restore(team.id),
-      onDelete: team == null ? null : () => _remove(team.id),
+      onDelete: team == null || (!canWrite && !canHardDelete)
+          ? null
+          : () => _remove(team.id),
       sections: team == null
           ? const []
           : [

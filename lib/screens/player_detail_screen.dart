@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../models/hockey_player.dart';
 import '../repositories/hockey_player_repository.dart';
+import '../state/auth_notifier.dart';
 import '../state/player_list_notifier.dart';
 import '../utils/format.dart';
 import '../widgets/entity_details.dart';
@@ -74,8 +75,14 @@ class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
 
   Future<void> _remove(int id) async {
     final model = context.read<PlayerListNotifier>();
+    final auth = context.read<AuthNotifier>();
     final router = GoRouter.of(context);
-    await model.hardDelete(id);
+    // Админ — физическое удаление; спонсор — «продать» (soft-delete).
+    if (auth.canManageUsers) {
+      await model.hardDelete(id);
+    } else {
+      await model.softDelete(id);
+    }
     if (!mounted) return;
     router.go('/players');
   }
@@ -90,6 +97,9 @@ class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final player = _player;
+    final auth = context.watch<AuthNotifier>();
+    final canWrite = auth.canWriteCatalog;
+    final canHardDelete = auth.canManageUsers;
 
     return EntityDetailsScreen(
       title: 'Карточка игрока',
@@ -98,15 +108,19 @@ class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
       error: _error,
       onRetry: _load,
       isDeleted: player?.isDeleted ?? false,
-      onEdit: player == null
+      onEdit: player == null || !canWrite
           ? null
           : () => context.go('/players/${player.id}/edit'),
-      onRestore: player == null || !player.isDeleted
+      onRestore: player == null || !player.isDeleted || !canHardDelete
           ? null
           : () => _restore(player.id),
       onDelete: player == null
           ? null
-          : () => _remove(player.id),
+          : canHardDelete
+              ? () => _remove(player.id)
+              : canWrite
+                  ? () => _remove(player.id)
+                  : null,
       sections: player == null
           ? const []
           : [
@@ -115,6 +129,9 @@ class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
                 rows: [
                   DetailRow('Имя', player.name),
                   DetailRow('Амплуа', player.category),
+                  DetailRow('Статус', player.statusLabel),
+                  if (player.notes.trim().isNotEmpty)
+                    DetailRow('Заметки', player.notes),
                   DetailRow('Команда', player.teamName),
                   DetailRow(
                     'Игровой номер',

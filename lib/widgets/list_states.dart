@@ -31,11 +31,17 @@ class ListEmptyState extends StatelessWidget {
     this.title = 'Ничего не найдено',
     this.message = 'Попробуйте изменить условия отбора или сбросить фильтры.',
     this.onReset,
+    this.resetLabel = 'Сбросить фильтры',
+    this.resetIcon = Icons.filter_alt_off,
+    this.action,
   });
 
   final String title;
   final String message;
   final VoidCallback? onReset;
+  final String resetLabel;
+  final IconData resetIcon;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -62,12 +68,15 @@ class ListEmptyState extends StatelessWidget {
                 color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-            if (onReset != null) ...[
+            if (action != null) ...[
+              const SizedBox(height: 16),
+              action!,
+            ] else if (onReset != null) ...[
               const SizedBox(height: 16),
               OutlinedButton.icon(
                 onPressed: onReset,
-                icon: const Icon(Icons.filter_alt_off),
-                label: const Text('Сбросить фильтры'),
+                icon: Icon(resetIcon),
+                label: Text(resetLabel),
               ),
             ],
           ],

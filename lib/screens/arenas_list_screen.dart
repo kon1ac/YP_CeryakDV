@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 
 import '../models/arena.dart';
 import '../models/arena_query.dart';
-import '../state/arena_list_notifier.dart';
 import '../repositories/arena_repository.dart';
+import '../state/arena_list_notifier.dart';
+import '../state/auth_notifier.dart';
 import '../state/load_status.dart';
 import '../utils/format.dart';
+import '../widgets/auth_menu_button.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/entity_paginator.dart';
 import '../widgets/entity_table.dart';
@@ -16,7 +18,7 @@ import '../widgets/list_states.dart';
 import '../widgets/search_field.dart';
 import '../widgets/selection_bar.dart';
 import 'checked_menu_item.dart';
-import 'players_list_screen.dart' show tableBreakpoint;
+import '../core/breakpoints.dart';
 
 class ArenasListScreen extends StatefulWidget {
   const ArenasListScreen({super.key, required this.uri});
@@ -58,7 +60,7 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
     super.didChangeDependencies();
     if (_filtersInitialized) return;
     _filtersInitialized = true;
-    _filtersOpen = MediaQuery.sizeOf(context).width >= tableBreakpoint;
+    _filtersOpen = MediaQuery.sizeOf(context).width >= Breakpoints.table;
   }
 
   @override
@@ -119,16 +121,18 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
   Widget build(BuildContext context) {
     final model = context.watch<ArenaListNotifier>();
     final query = model.query;
+    final canManage = context.watch<AuthNotifier>().canManageDictionaries;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Арены'),
         actions: [
-          IconButton(
-            tooltip: 'Добавить',
-            onPressed: () => context.go('/arenas/new'),
-            icon: const Icon(Icons.add),
-          ),
+          if (canManage)
+            IconButton(
+              tooltip: 'Добавить',
+              onPressed: () => context.go('/arenas/new'),
+              icon: const Icon(Icons.add),
+            ),
           IconButton(
             tooltip: _filtersOpen ? 'Скрыть фильтры' : 'Показать фильтры',
             onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
@@ -162,12 +166,10 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
               ),
             ],
           ),
+          const AuthMenuButton(),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kListNavBarHeight),
-          child: const ListNavBar(active: ListDestination.arenas),
-        ),
       ),
+      bottomNavigationBar: const ListNavBar(active: ListDestination.arenas),
       body: Column(
         children: [
           Padding(
@@ -225,7 +227,7 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
         crossAxisAlignment: WrapCrossAlignment.end,
         children: [
           SizedBox(
-            width: 220,
+            width: Breakpoints.filterFieldWidth(context, preferred: 220),
             child: DropdownButtonFormField<String>(
               initialValue: query.city,
               isExpanded: true,
@@ -244,7 +246,7 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
             ),
           ),
           SizedBox(
-            width: 160,
+            width: Breakpoints.filterFieldWidth(context, preferred: 160),
             child: TextField(
               controller: _capacityFromController,
               keyboardType: TextInputType.number,
@@ -257,7 +259,7 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
             ),
           ),
           SizedBox(
-            width: 160,
+            width: Breakpoints.filterFieldWidth(context, preferred: 160),
             child: TextField(
               controller: _capacityToController,
               keyboardType: TextInputType.number,
@@ -306,7 +308,7 @@ class _ArenasListScreenState extends State<ArenasListScreen> {
             )
           : LayoutBuilder(
               builder: (context, constraints) =>
-                  constraints.maxWidth >= tableBreakpoint
+                  constraints.maxWidth >= Breakpoints.table
                       ? _table(model)
                       : _cards(model),
             ),

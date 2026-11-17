@@ -27,6 +27,7 @@ class ApiHockeyPlayerRepository implements HockeyPlayerRepository {
           queryParameters: {
             if (query.search.trim().isNotEmpty) 'search': query.search.trim(),
             if (query.category != null) 'category': query.category,
+            if (query.status != null) 'status': query.status,
             if (query.teamId != null) 'teamId': query.teamId,
             if (query.achievementId != null)
               'achievementId': query.achievementId,

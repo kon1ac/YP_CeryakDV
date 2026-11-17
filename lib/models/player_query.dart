@@ -4,6 +4,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
   const PlayerQuery({
     super.search = '',
     this.category,
+    this.status,
     this.teamId,
     this.achievementId,
     this.priceFrom,
@@ -28,6 +29,8 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
 
   final String? category;
 
+  final String? status;
+
   final int? teamId;
 
   final int? achievementId;
@@ -43,6 +46,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
   bool get isFiltered =>
       isSearchActive ||
       category != null ||
+      status != null ||
       teamId != null ||
       achievementId != null ||
       priceFrom != null ||
@@ -52,6 +56,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
   PlayerQuery copyWith({
     Object? search = unset,
     Object? category = unset,
+    Object? status = unset,
     Object? teamId = unset,
     Object? achievementId = unset,
     Object? priceFrom = unset,
@@ -66,6 +71,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
     return PlayerQuery(
       search: search == unset ? this.search : search as String,
       category: category == unset ? this.category : category as String?,
+      status: status == unset ? this.status : status as String?,
       teamId: teamId == unset ? this.teamId : teamId as int?,
       achievementId:
           achievementId == unset ? this.achievementId : achievementId as int?,
@@ -93,6 +99,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
       ),
       if (search.trim().isNotEmpty) 'search': search.trim(),
       'category': ?category,
+      'status': ?status,
       if (teamId != null) 'teamId': '$teamId',
       if (achievementId != null) 'achievementId': '$achievementId',
       if (priceFrom != null) 'priceFrom': plainNumber(priceFrom!),
@@ -105,6 +112,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
     return PlayerQuery(
       search: params['search'] ?? '',
       category: params['category'],
+      status: params['status'],
       teamId: parseInt(params['teamId']),
       achievementId: parseInt(params['achievementId']),
       priceFrom: parseDouble(params['priceFrom']),
@@ -123,6 +131,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
       other is PlayerQuery &&
       other.search == search &&
       other.category == category &&
+      other.status == status &&
       other.teamId == teamId &&
       other.achievementId == achievementId &&
       other.priceFrom == priceFrom &&
@@ -138,6 +147,7 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
   int get hashCode => Object.hash(
         search,
         category,
+        status,
         teamId,
         achievementId,
         priceFrom,

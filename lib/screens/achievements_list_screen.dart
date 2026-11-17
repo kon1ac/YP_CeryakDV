@@ -5,8 +5,10 @@ import 'package:provider/provider.dart';
 import '../models/achievement.dart';
 import '../models/achievement_query.dart';
 import '../state/achievement_list_notifier.dart';
+import '../state/auth_notifier.dart';
 import '../state/load_status.dart';
 import '../utils/format.dart';
+import '../widgets/auth_menu_button.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/entity_paginator.dart';
 import '../widgets/entity_table.dart';
@@ -15,7 +17,7 @@ import '../widgets/list_states.dart';
 import '../widgets/search_field.dart';
 import '../widgets/selection_bar.dart';
 import 'checked_menu_item.dart';
-import 'players_list_screen.dart' show tableBreakpoint;
+import '../core/breakpoints.dart';
 
 class AchievementsListScreen extends StatefulWidget {
   const AchievementsListScreen({super.key, required this.uri});
@@ -59,7 +61,7 @@ class _AchievementsListScreenState extends State<AchievementsListScreen> {
     super.didChangeDependencies();
     if (_filtersInitialized) return;
     _filtersInitialized = true;
-    _filtersOpen = MediaQuery.sizeOf(context).width >= tableBreakpoint;
+    _filtersOpen = MediaQuery.sizeOf(context).width >= Breakpoints.table;
   }
 
   @override
@@ -121,16 +123,18 @@ class _AchievementsListScreenState extends State<AchievementsListScreen> {
   Widget build(BuildContext context) {
     final model = context.watch<AchievementListNotifier>();
     final query = model.query;
+    final canManage = context.watch<AuthNotifier>().canManageDictionaries;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Награды'),
         actions: [
-          IconButton(
-            tooltip: 'Добавить',
-            onPressed: () => context.go('/achievements/new'),
-            icon: const Icon(Icons.add),
-          ),
+          if (canManage)
+            IconButton(
+              tooltip: 'Добавить',
+              onPressed: () => context.go('/achievements/new'),
+              icon: const Icon(Icons.add),
+            ),
           IconButton(
             tooltip: _filtersOpen ? 'Скрыть фильтры' : 'Показать фильтры',
             onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
@@ -164,12 +168,10 @@ class _AchievementsListScreenState extends State<AchievementsListScreen> {
               ),
             ],
           ),
+          const AuthMenuButton(),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kListNavBarHeight),
-          child: const ListNavBar(active: ListDestination.achievements),
-        ),
       ),
+      bottomNavigationBar: const ListNavBar(active: ListDestination.achievements),
       body: Column(
         children: [
           Padding(
@@ -227,7 +229,7 @@ class _AchievementsListScreenState extends State<AchievementsListScreen> {
         crossAxisAlignment: WrapCrossAlignment.end,
         children: [
           SizedBox(
-            width: 140,
+            width: Breakpoints.filterFieldWidth(context, preferred: 140),
             child: TextField(
               controller: _yearFromController,
               keyboardType: TextInputType.number,
@@ -240,7 +242,7 @@ class _AchievementsListScreenState extends State<AchievementsListScreen> {
             ),
           ),
           SizedBox(
-            width: 140,
+            width: Breakpoints.filterFieldWidth(context, preferred: 140),
             child: TextField(
               controller: _yearToController,
               keyboardType: TextInputType.number,
@@ -289,7 +291,7 @@ class _AchievementsListScreenState extends State<AchievementsListScreen> {
             )
           : LayoutBuilder(
               builder: (context, constraints) =>
-                  constraints.maxWidth >= tableBreakpoint
+                  constraints.maxWidth >= Breakpoints.table
                       ? _table(model)
                       : _cards(model),
             ),

@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 
 import '../models/hockey_player.dart';
 import '../models/player_query.dart';
+import '../state/auth_notifier.dart';
 import '../state/load_status.dart';
 import '../state/player_list_notifier.dart';
 import '../utils/format.dart';
+import '../widgets/auth_menu_button.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/entity_paginator.dart';
 import '../widgets/entity_table.dart';
@@ -14,9 +16,8 @@ import '../widgets/list_nav_bar.dart';
 import '../widgets/list_states.dart';
 import '../widgets/search_field.dart';
 import '../widgets/selection_bar.dart';
+import '../core/breakpoints.dart';
 import 'checked_menu_item.dart';
-
-const double tableBreakpoint = 600;
 
 class PlayersListScreen extends StatefulWidget {
   const PlayersListScreen({super.key, required this.uri});
@@ -60,7 +61,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
     super.didChangeDependencies();
     if (_filtersInitialized) return;
     _filtersInitialized = true;
-    _filtersOpen = MediaQuery.sizeOf(context).width >= tableBreakpoint;
+    _filtersOpen = MediaQuery.sizeOf(context).width >= Breakpoints.table;
   }
 
   @override
@@ -123,16 +124,19 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
   @override
   Widget build(BuildContext context) {
     final model = context.watch<PlayerListNotifier>();
+    final auth = context.watch<AuthNotifier>();
+    final canWrite = auth.canWriteCatalog;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Хоккеисты'),
         actions: [
-          IconButton(
-            tooltip: 'Добавить игрока',
-            onPressed: () => context.go('/players/new'),
-            icon: const Icon(Icons.person_add_alt),
-          ),
+          if (canWrite)
+            IconButton(
+              tooltip: 'Добавить игрока',
+              onPressed: () => context.go('/players/new'),
+              icon: const Icon(Icons.person_add_alt),
+            ),
           IconButton(
             tooltip: _filtersOpen ? 'Скрыть фильтры' : 'Показать фильтры',
             onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
@@ -165,17 +169,15 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
               ),
             ],
           ),
+          const AuthMenuButton(),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kListNavBarHeight),
-          child: const ListNavBar(active: ListDestination.players),
-        ),
       ),
+      bottomNavigationBar: const ListNavBar(active: ListDestination.players),
       body: Column(
         children: [
           _controls(model),
           if (_filtersOpen) _filters(model),
-          if (model.hasSelection)
+          if (canWrite && model.hasSelection)
             SelectionBar(
               count: model.selected.length,
               deletedMode: _query.includeDeleted,
@@ -232,7 +234,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
         crossAxisAlignment: WrapCrossAlignment.end,
         children: [
           SizedBox(
-            width: 190,
+            width: Breakpoints.filterFieldWidth(context, preferred: 190),
             child: DropdownButtonFormField<String>(
               initialValue: query.category,
               isExpanded: true,
@@ -254,7 +256,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
             ),
           ),
           SizedBox(
-            width: 190,
+            width: Breakpoints.filterFieldWidth(context, preferred: 190),
             child: DropdownButtonFormField<int>(
               initialValue: query.teamId,
               isExpanded: true,
@@ -273,7 +275,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
             ),
           ),
           SizedBox(
-            width: 210,
+            width: Breakpoints.filterFieldWidth(context, preferred: 210),
             child: DropdownButtonFormField<int>(
               initialValue: query.achievementId,
               isExpanded: true,
@@ -295,7 +297,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
             ),
           ),
           SizedBox(
-            width: 130,
+            width: Breakpoints.filterFieldWidth(context, preferred: 130),
             child: TextField(
               controller: _priceFromController,
               keyboardType: TextInputType.number,
@@ -308,7 +310,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
             ),
           ),
           SizedBox(
-            width: 130,
+            width: Breakpoints.filterFieldWidth(context, preferred: 130),
             child: TextField(
               controller: _priceToController,
               keyboardType: TextInputType.number,
@@ -357,7 +359,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
             )
           : LayoutBuilder(
               builder: (context, constraints) =>
-                  constraints.maxWidth >= tableBreakpoint
+                  constraints.maxWidth >= Breakpoints.table
                       ? _table(model)
                       : _cards(model),
             ),
@@ -365,6 +367,7 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
   }
 
   Widget _table(PlayerListNotifier model) {
+    final canWrite = context.watch<AuthNotifier>().canWriteCatalog;
     final columns = <TableColumnSpec<HockeyPlayer>>[
       TableColumnSpec(
         label: '№',
@@ -431,14 +434,17 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
         sortField: model.query.sortField,
         sortAscending: model.query.sortAscending,
         onSort: model.toggleSort,
-        onToggleSelect: model.toggleSelection,
-        onToggleSelectAll: model.toggleSelectPage,
+        onToggleSelect:
+            canWrite ? model.toggleSelection : null,
+        onToggleSelectAll:
+            canWrite ? model.toggleSelectPage : null,
         actions: _rowActions,
       ),
     );
   }
 
   Widget _cards(PlayerListNotifier model) {
+    final canWrite = context.watch<AuthNotifier>().canWriteCatalog;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
       itemCount: model.result.items.length,
@@ -447,7 +453,8 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
         return EntityCard<HockeyPlayer>(
           item: player,
           selected: model.selected.contains(player.id),
-          onSelectChanged: (value) => model.toggleSelection(player.id),
+          onSelectChanged:
+              canWrite ? (_) => model.toggleSelection(player.id) : null,
           title: _openLink('/players/${player.id}', player.name),
           subtitle: Text('${player.category} · ${player.teamName}'),
           fields: [
@@ -490,38 +497,49 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
 
   List<Widget> _rowActions(HockeyPlayer player) {
     final model = context.read<PlayerListNotifier>();
+    final auth = context.read<AuthNotifier>();
+    final canWrite = auth.canWriteCatalog;
+    final canHardDelete = auth.canManageUsers;
+
+    // Скаут — только просмотр.
+    if (!canWrite && !canHardDelete) return const [];
 
     if (player.isDeleted) {
       return [
-        IconButton(
-          tooltip: 'Вернуть в продажу',
-          onPressed: () => model.restore(player.id),
-          icon: const Icon(Icons.restore),
-        ),
-        IconButton(
-          tooltip: 'Удалить из базы',
-          onPressed: () => _confirmDelete(player, physical: true),
-          icon: const Icon(Icons.delete_forever, size: 20),
-        ),
+        if (canHardDelete)
+          IconButton(
+            tooltip: 'Вернуть в продажу',
+            onPressed: () => model.restore(player.id),
+            icon: const Icon(Icons.restore),
+          ),
+        if (canHardDelete)
+          IconButton(
+            tooltip: 'Удалить из базы',
+            onPressed: () => _confirmDelete(player, physical: true),
+            icon: const Icon(Icons.delete_forever, size: 20),
+          ),
       ];
     }
 
     return [
-      IconButton(
-        tooltip: 'Изменить',
-        onPressed: () => context.go('/players/${player.id}/edit'),
-        icon: const Icon(Icons.edit_outlined, size: 20),
-      ),
-      IconButton(
-        tooltip: 'Продать',
-        onPressed: () => _confirmDelete(player, physical: false),
-        icon: const Icon(Icons.sell_outlined),
-      ),
-      IconButton(
-        tooltip: 'Удалить из базы',
-        onPressed: () => _confirmDelete(player, physical: true),
-        icon: const Icon(Icons.delete_outline, size: 20),
-      ),
+      if (canWrite)
+        IconButton(
+          tooltip: 'Изменить',
+          onPressed: () => context.go('/players/${player.id}/edit'),
+          icon: const Icon(Icons.edit_outlined, size: 20),
+        ),
+      if (canWrite)
+        IconButton(
+          tooltip: 'Продать',
+          onPressed: () => _confirmDelete(player, physical: false),
+          icon: const Icon(Icons.sell_outlined),
+        ),
+      if (canHardDelete)
+        IconButton(
+          tooltip: 'Удалить из базы',
+          onPressed: () => _confirmDelete(player, physical: true),
+          icon: const Icon(Icons.delete_outline, size: 20),
+        ),
     ];
   }
 

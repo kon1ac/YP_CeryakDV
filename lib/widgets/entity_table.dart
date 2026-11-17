@@ -61,25 +61,23 @@ class EntityTable<T extends Identifiable> extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Scrollbar(
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final table = DataTable(
           sortColumnIndex: _sortColumnIndex,
           sortAscending: sortAscending,
           headingRowHeight: 48,
           dataRowMinHeight: 44,
           dataRowMaxHeight: 64,
-          horizontalMargin: 16,
-          columnSpacing: 24,
+          horizontalMargin: 12,
+          columnSpacing: 16,
           showCheckboxColumn: onToggleSelect != null,
           onSelectAll: onToggleSelectAll == null
               ? null
               : (_) => onToggleSelectAll!(),
           columns: [
             for (final column in columns) _buildColumn(context, column),
-            if (actions != null)
-              const DataColumn(label: SizedBox.shrink()),
+            if (actions != null) const DataColumn(label: SizedBox.shrink()),
           ],
           rows: [
             for (final item in items)
@@ -91,7 +89,8 @@ class EntityTable<T extends Identifiable> extends StatelessWidget {
                     : (_) => onToggleSelect!(idOf(item)),
                 color: item.isDeleted
                     ? WidgetStatePropertyAll(
-                        theme.colorScheme.errorContainer.withValues(alpha: 0.35),
+                        theme.colorScheme.errorContainer
+                            .withValues(alpha: 0.35),
                       )
                     : null,
                 cells: [
@@ -109,16 +108,33 @@ class EntityTable<T extends Identifiable> extends StatelessWidget {
                     ),
                   if (actions != null)
                     DataCell(
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: actions!(item),
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: actions!(item),
+                        ),
                       ),
                     ),
                 ],
               ),
           ],
-        ),
-      ),
+        );
+
+        return Scrollbar(
+          thumbVisibility: constraints.maxWidth < 900,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: table,
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -138,6 +154,7 @@ class EntityTable<T extends Identifiable> extends StatelessWidget {
         child: Text(
           column.label,
           textAlign: column.numeric ? TextAlign.right : TextAlign.left,
+          overflow: TextOverflow.ellipsis,
         ),
       ),
       numeric: column.numeric,

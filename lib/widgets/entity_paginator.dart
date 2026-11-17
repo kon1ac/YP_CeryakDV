@@ -61,45 +61,52 @@ class EntityPaginator<T> extends StatelessWidget {
               ),
             ],
           ),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                tooltip: 'Первая страница',
-                onPressed: enabled && page.hasPrevious
-                    ? () => onPageSelected(1)
-                    : null,
-                icon: const Icon(Icons.first_page),
-              ),
-              IconButton(
-                tooltip: 'Предыдущая страница',
-                onPressed: enabled && page.hasPrevious
-                    ? () => onPageSelected(page.page - 1)
-                    : null,
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  'Стр. ${page.page} из ${page.totalPages}',
-                  style: theme.textTheme.bodySmall,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: 'Первая страница',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: enabled && page.hasPrevious
+                      ? () => onPageSelected(1)
+                      : null,
+                  icon: const Icon(Icons.first_page),
                 ),
-              ),
-              IconButton(
-                tooltip: 'Следующая страница',
-                onPressed: enabled && page.hasNext
-                    ? () => onPageSelected(page.page + 1)
-                    : null,
-                icon: const Icon(Icons.chevron_right),
-              ),
-              IconButton(
-                tooltip: 'Последняя страница',
-                onPressed: enabled && page.hasNext
-                    ? () => onPageSelected(page.totalPages)
-                    : null,
-                icon: const Icon(Icons.last_page),
-              ),
-            ],
+                IconButton(
+                  tooltip: 'Предыдущая страница',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: enabled && page.hasPrevious
+                      ? () => onPageSelected(page.page - 1)
+                      : null,
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: Text(
+                    'Стр. ${page.page} из ${page.totalPages}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+                IconButton(
+                  tooltip: 'Следующая страница',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: enabled && page.hasNext
+                      ? () => onPageSelected(page.page + 1)
+                      : null,
+                  icon: const Icon(Icons.chevron_right),
+                ),
+                IconButton(
+                  tooltip: 'Последняя страница',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: enabled && page.hasNext
+                      ? () => onPageSelected(page.totalPages)
+                      : null,
+                  icon: const Icon(Icons.last_page),
+                ),
+              ],
+            ),
           ),
         ],
       ),

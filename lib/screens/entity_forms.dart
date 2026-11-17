@@ -16,6 +16,8 @@ class PlayerFormData {
     this.price = '',
     this.jerseyNumber = '',
     this.teamId = '',
+    this.status = 'in_roster',
+    this.notes = '',
     this.achievementIds = const [],
     this.contractNumber = '',
     this.contractEmail = '',
@@ -35,6 +37,10 @@ class PlayerFormData {
   final String jerseyNumber;
 
   final String teamId;
+
+  final String status;
+
+  final String notes;
 
   final List<String> achievementIds;
 
@@ -57,6 +63,8 @@ class PlayerFormData {
       price: Format.plain(player.price),
       jerseyNumber: player.jerseyNumber?.toString() ?? '',
       teamId: player.teamId == 0 ? '' : '${player.teamId}',
+      status: player.status,
+      notes: player.notes,
       achievementIds: [for (final id in player.achievementIds) '$id'],
       contractNumber: contract == null ? '' : '${contract.number}',
       contractEmail: contract?.email ?? '',
@@ -77,6 +85,8 @@ class PlayerFormData {
         'price': price,
         'jerseyNumber': jerseyNumber,
         'teamId': teamId,
+        'status': status,
+        'notes': notes,
         'achievementIds': achievementIds.join(','),
         'contractNumber': contractNumber,
         'contractEmail': contractEmail,
@@ -180,6 +190,25 @@ FormSpec playerFormSpec({
                     rangeMessage: 'Слишком большая сумма',
                   ),
             ]),
+          ),
+          SelectFieldSpec(
+            key: 'status',
+            label: 'Статус',
+            initial: data.status,
+            options: [
+              for (final entry in HockeyPlayer.statusLabels.entries)
+                FormOption(entry.key, entry.value),
+            ],
+            validator: (value) =>
+                Validators.required(value, message: 'Выберите статус'),
+          ),
+          TextFieldSpec(
+            key: 'notes',
+            label: 'Заметки',
+            initial: data.notes,
+            maxLines: 3,
+            hint: 'Пометки по состоянию, форме, сделкам…',
+            validator: (value) => Validators.maxLength(value, 2000),
           ),
         ],
       ),

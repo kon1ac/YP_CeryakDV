@@ -23,6 +23,11 @@ class HockeyPlayer implements Identifiable {
 
   final int? jerseyNumber;
 
+  /// in_roster | injured | suspended | free_agent
+  final String status;
+
+  final String notes;
+
   @override
   final DateTime? deletedAt;
 
@@ -38,8 +43,19 @@ class HockeyPlayer implements Identifiable {
     this.achievementNames = const [],
     this.contract,
     this.jerseyNumber,
+    this.status = 'in_roster',
+    this.notes = '',
     this.deletedAt,
   });
+
+  static const statusLabels = <String, String>{
+    'in_roster': 'В строю',
+    'injured': 'Травмирован',
+    'suspended': 'Дисквалифицирован',
+    'free_agent': 'Свободный агент',
+  };
+
+  String get statusLabel => statusLabels[status] ?? status;
 
   @override
   bool get isDeleted => deletedAt != null;
@@ -60,6 +76,8 @@ class HockeyPlayer implements Identifiable {
     List<String>? achievementNames,
     Contract? contract,
     int? jerseyNumber,
+    String? status,
+    String? notes,
     DateTime? deletedAt,
     bool clearContract = false,
     bool clearDeletedAt = false,
@@ -76,6 +94,8 @@ class HockeyPlayer implements Identifiable {
       achievementNames: achievementNames ?? this.achievementNames,
       contract: clearContract ? null : (contract ?? this.contract),
       jerseyNumber: jerseyNumber ?? this.jerseyNumber,
+      status: status ?? this.status,
+      notes: notes ?? this.notes,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
     );
   }
@@ -90,6 +110,8 @@ class HockeyPlayer implements Identifiable {
         'achievementIds': achievementIds,
         'contract': contract?.toJson(),
         'jerseyNumber': jerseyNumber,
+        'status': status,
+        'notes': notes,
         'deletedAt': deletedAt?.toIso8601String(),
       };
 
@@ -129,6 +151,8 @@ class HockeyPlayer implements Identifiable {
               Map<String, dynamic>.from(json['contract'] as Map),
             ),
       jerseyNumber: json['jerseyNumber'] as int?,
+      status: json['status'] as String? ?? 'in_roster',
+      notes: json['notes'] as String? ?? '',
       deletedAt: json['deletedAt'] == null
           ? null
           : DateTime.tryParse(json['deletedAt'] as String),
@@ -143,6 +167,8 @@ class HockeyPlayer implements Identifiable {
         'teamId': teamId,
         'achievementIds': achievementIds,
         'jerseyNumber': jerseyNumber,
+        'status': status,
+        'notes': notes,
         'contract': contract?.toJson(),
       };
 

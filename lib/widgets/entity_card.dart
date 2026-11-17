@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/breakpoints.dart';
 import '../models/list_query.dart';
 
 class EntityCard<T extends Identifiable> extends StatelessWidget {
@@ -71,34 +72,65 @@ class EntityCard<T extends Identifiable> extends StatelessWidget {
                     ],
                   ),
                 ),
-                ...actions,
+                if (actions.isNotEmpty)
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: actions,
+                      ),
+                    ),
+                  ),
               ],
             ),
             if (fields.isNotEmpty) ...[
               const SizedBox(height: 8),
               for (final (label, value) in fields)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 2),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        width: 110,
-                        child: Text(
-                          label,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                      Expanded(child: value),
-                    ],
-                  ),
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: _CardField(label: label, value: value),
                 ),
             ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CardField extends StatelessWidget {
+  const _CardField({required this.label, required this.value});
+
+  final String label;
+  final Widget value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final compact = Breakpoints.isCompact(context);
+
+    if (compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: labelStyle),
+          const SizedBox(height: 2),
+          value,
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(width: 110, child: Text(label, style: labelStyle)),
+        Expanded(child: value),
+      ],
     );
   }
 }

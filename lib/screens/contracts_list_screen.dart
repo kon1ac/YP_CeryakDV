@@ -7,6 +7,7 @@ import '../models/contract_query.dart';
 import '../state/contract_list_notifier.dart';
 import '../state/load_status.dart';
 import '../utils/format.dart';
+import '../widgets/auth_menu_button.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/entity_paginator.dart';
 import '../widgets/entity_table.dart';
@@ -15,7 +16,7 @@ import '../widgets/list_states.dart';
 import '../widgets/search_field.dart';
 import '../widgets/selection_bar.dart';
 import 'checked_menu_item.dart';
-import 'players_list_screen.dart' show tableBreakpoint;
+import '../core/breakpoints.dart';
 
 class ContractsListScreen extends StatefulWidget {
   const ContractsListScreen({super.key, required this.uri});
@@ -59,7 +60,7 @@ class _ContractsListScreenState extends State<ContractsListScreen> {
     super.didChangeDependencies();
     if (_filtersInitialized) return;
     _filtersInitialized = true;
-    _filtersOpen = MediaQuery.sizeOf(context).width >= tableBreakpoint;
+    _filtersOpen = MediaQuery.sizeOf(context).width >= Breakpoints.table;
   }
 
   @override
@@ -161,12 +162,10 @@ class _ContractsListScreenState extends State<ContractsListScreen> {
               ),
             ],
           ),
+          const AuthMenuButton(),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kListNavBarHeight),
-          child: const ListNavBar(active: ListDestination.contracts),
-        ),
       ),
+      bottomNavigationBar: const ListNavBar(active: ListDestination.contracts),
       body: Column(
         children: [
           Padding(
@@ -224,7 +223,7 @@ class _ContractsListScreenState extends State<ContractsListScreen> {
         crossAxisAlignment: WrapCrossAlignment.end,
         children: [
           SizedBox(
-            width: 200,
+            width: Breakpoints.filterFieldWidth(context, preferred: 200),
             child: DropdownButtonFormField<bool>(
               initialValue: query.expiringSoon,
               isExpanded: true,
@@ -245,7 +244,7 @@ class _ContractsListScreenState extends State<ContractsListScreen> {
             ),
           ),
           SizedBox(
-            width: 150,
+            width: Breakpoints.filterFieldWidth(context, preferred: 150),
             child: TextField(
               controller: _minSalaryController,
               keyboardType: TextInputType.number,
@@ -258,7 +257,7 @@ class _ContractsListScreenState extends State<ContractsListScreen> {
             ),
           ),
           SizedBox(
-            width: 150,
+            width: Breakpoints.filterFieldWidth(context, preferred: 150),
             child: TextField(
               controller: _maxSalaryController,
               keyboardType: TextInputType.number,
@@ -307,7 +306,7 @@ class _ContractsListScreenState extends State<ContractsListScreen> {
             )
           : LayoutBuilder(
               builder: (context, constraints) =>
-                  constraints.maxWidth >= tableBreakpoint
+                  constraints.maxWidth >= Breakpoints.table
                       ? _table(model)
                       : _cards(model),
             ),

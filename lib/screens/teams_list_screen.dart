@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import '../core/api_exceptions.dart';
 import '../models/team.dart';
 import '../models/team_query.dart';
+import '../state/auth_notifier.dart';
 import '../state/load_status.dart';
 import '../state/team_list_notifier.dart';
 import '../utils/format.dart';
+import '../widgets/auth_menu_button.dart';
 import '../widgets/entity_card.dart';
 import '../widgets/entity_paginator.dart';
 import '../widgets/entity_table.dart';
@@ -16,7 +18,7 @@ import '../widgets/list_states.dart';
 import '../widgets/search_field.dart';
 import '../widgets/selection_bar.dart';
 import 'checked_menu_item.dart';
-import 'players_list_screen.dart' show tableBreakpoint;
+import '../core/breakpoints.dart';
 
 class TeamsListScreen extends StatefulWidget {
   const TeamsListScreen({super.key, required this.uri});
@@ -58,7 +60,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
     super.didChangeDependencies();
     if (_filtersInitialized) return;
     _filtersInitialized = true;
-    _filtersOpen = MediaQuery.sizeOf(context).width >= tableBreakpoint;
+    _filtersOpen = MediaQuery.sizeOf(context).width >= Breakpoints.table;
   }
 
   @override
@@ -119,16 +121,18 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
   Widget build(BuildContext context) {
     final model = context.watch<TeamListNotifier>();
     final query = model.query;
+    final canWrite = context.watch<AuthNotifier>().canWriteCatalog;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Команды'),
         actions: [
-          IconButton(
-            tooltip: 'Добавить',
-            onPressed: () => context.go('/teams/new'),
-            icon: const Icon(Icons.add),
-          ),
+          if (canWrite)
+            IconButton(
+              tooltip: 'Добавить',
+              onPressed: () => context.go('/teams/new'),
+              icon: const Icon(Icons.add),
+            ),
           IconButton(
             tooltip: _filtersOpen ? 'Скрыть фильтры' : 'Показать фильтры',
             onPressed: () => setState(() => _filtersOpen = !_filtersOpen),
@@ -162,12 +166,10 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
               ),
             ],
           ),
+          const AuthMenuButton(),
         ],
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(kListNavBarHeight),
-          child: const ListNavBar(active: ListDestination.teams),
-        ),
       ),
+      bottomNavigationBar: const ListNavBar(active: ListDestination.teams),
       body: Column(
         children: [
           Padding(
@@ -194,7 +196,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
             ),
           ),
           if (_filtersOpen) _filters(model),
-          if (model.hasSelection)
+          if (canWrite && model.hasSelection)
             SelectionBar(
               count: model.selected.length,
               deletedMode: query.includeDeleted,
@@ -225,7 +227,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
         crossAxisAlignment: WrapCrossAlignment.end,
         children: [
           SizedBox(
-            width: 220,
+            width: Breakpoints.filterFieldWidth(context, preferred: 220),
             child: DropdownButtonFormField<String>(
               initialValue: query.city,
               isExpanded: true,
@@ -244,7 +246,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
             ),
           ),
           SizedBox(
-            width: 140,
+            width: Breakpoints.filterFieldWidth(context, preferred: 140),
             child: TextField(
               controller: _playersFromController,
               keyboardType: TextInputType.number,
@@ -257,7 +259,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
             ),
           ),
           SizedBox(
-            width: 140,
+            width: Breakpoints.filterFieldWidth(context, preferred: 140),
             child: TextField(
               controller: _playersToController,
               keyboardType: TextInputType.number,
@@ -306,7 +308,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
             )
           : LayoutBuilder(
               builder: (context, constraints) =>
-                  constraints.maxWidth >= tableBreakpoint
+                  constraints.maxWidth >= Breakpoints.table
                       ? _table(model)
                       : _cards(model),
             ),
@@ -314,6 +316,7 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
   }
 
   Widget _table(TeamListNotifier model) {
+    final canWrite = context.watch<AuthNotifier>().canWriteCatalog;
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: EntityTable<Team>(
@@ -359,14 +362,15 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
         sortField: model.query.sortField,
         sortAscending: model.query.sortAscending,
         onSort: model.toggleSort,
-        onToggleSelect: model.toggleSelection,
-        onToggleSelectAll: model.toggleSelectPage,
+        onToggleSelect: canWrite ? model.toggleSelection : null,
+        onToggleSelectAll: canWrite ? model.toggleSelectPage : null,
         actions: _rowActions,
       ),
     );
   }
 
   Widget _cards(TeamListNotifier model) {
+    final canWrite = context.watch<AuthNotifier>().canWriteCatalog;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 8),
       itemCount: model.result.items.length,
@@ -375,7 +379,8 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
         return EntityCard<Team>(
           item: team,
           selected: model.selected.contains(team.id),
-          onSelectChanged: (value) => model.toggleSelection(team.id),
+          onSelectChanged:
+              canWrite ? (_) => model.toggleSelection(team.id) : null,
           title: _openLink('/teams/${team.id}', team.name),
           subtitle: Text(team.city),
           fields: [
@@ -405,38 +410,48 @@ class _TeamsListScreenState extends State<TeamsListScreen> {
 
   List<Widget> _rowActions(Team team) {
     final model = context.read<TeamListNotifier>();
+    final auth = context.read<AuthNotifier>();
+    final canWrite = auth.canWriteCatalog;
+    final canHardDelete = auth.canManageUsers;
+
+    if (!canWrite && !canHardDelete) return const [];
 
     if (team.isDeleted) {
       return [
-      IconButton(
-        tooltip: 'Изменить',
-        onPressed: () => context.go('/teams/${team.id}/edit'),
-        icon: const Icon(Icons.edit_outlined, size: 20),
-      ),
-        IconButton(
-          tooltip: 'Вернуть список',
-          onPressed: () => model.restore(team.id),
-          icon: const Icon(Icons.restore),
-        ),
-        IconButton(
-          tooltip: 'Удалить из базы',
-          onPressed: () => _confirmDelete(team, physical: true),
-          icon: const Icon(Icons.delete_forever, size: 20),
-        ),
+        if (canWrite)
+          IconButton(
+            tooltip: 'Изменить',
+            onPressed: () => context.go('/teams/${team.id}/edit'),
+            icon: const Icon(Icons.edit_outlined, size: 20),
+          ),
+        if (canHardDelete)
+          IconButton(
+            tooltip: 'Вернуть список',
+            onPressed: () => model.restore(team.id),
+            icon: const Icon(Icons.restore),
+          ),
+        if (canHardDelete)
+          IconButton(
+            tooltip: 'Удалить из базы',
+            onPressed: () => _confirmDelete(team, physical: true),
+            icon: const Icon(Icons.delete_forever, size: 20),
+          ),
       ];
     }
 
     return [
-      IconButton(
-        tooltip: 'Расформировать',
-        onPressed: () => _confirmDelete(team, physical: false),
-        icon: const Icon(Icons.flag_outlined),
-      ),
-      IconButton(
-        tooltip: 'Удалить из базы',
-        onPressed: () => _confirmDelete(team, physical: true),
-        icon: const Icon(Icons.delete_outline, size: 20),
-      ),
+      if (canWrite)
+        IconButton(
+          tooltip: 'Расформировать',
+          onPressed: () => _confirmDelete(team, physical: false),
+          icon: const Icon(Icons.flag_outlined),
+        ),
+      if (canHardDelete)
+        IconButton(
+          tooltip: 'Удалить из базы',
+          onPressed: () => _confirmDelete(team, physical: true),
+          icon: const Icon(Icons.delete_outline, size: 20),
+        ),
     ];
   }
 

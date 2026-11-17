@@ -5,8 +5,21 @@ import 'api_exceptions.dart';
 import 'config.dart';
 
 typedef TokenProvider = String? Function();
+typedef TokenRefresher = Future<bool> Function();
+typedef LogoutCallback = Future<void> Function();
 
-Dio buildDio({TokenProvider? tokenProvider}) {
+const _authRetryExtra = 'authRetried';
+
+bool _isAuthPath(String path) {
+  final normalized = path.toLowerCase();
+  return normalized.contains('/auth/');
+}
+
+Dio buildDio({
+  TokenProvider? tokenProvider,
+  TokenRefresher? onUnauthorized,
+  LogoutCallback? onRefreshFailed,
+}) {
   final dio = Dio(
     BaseOptions(
       baseUrl: apiBaseUrl,
@@ -29,13 +42,41 @@ Dio buildDio({TokenProvider? tokenProvider}) {
         }
         return handler.next(options);
       },
-      onResponse: (response, handler) {
+      onResponse: (response, handler) async {
         if (kDebugMode) {
           debugPrint(
             '[API] ← ${response.statusCode} ${response.requestOptions.uri}',
           );
         }
+
         final status = response.statusCode ?? 0;
+        final request = response.requestOptions;
+
+        if (status == 401 &&
+            !_isAuthPath(request.path) &&
+            request.extra[_authRetryExtra] != true &&
+            onUnauthorized != null) {
+          final refreshed = await onUnauthorized();
+          if (refreshed) {
+            try {
+              final retryResponse = await dio.fetch<dynamic>(
+                request.copyWith(
+                  headers: Map<String, dynamic>.from(request.headers)
+                    ..['Authorization'] = 'Bearer ${tokenProvider?.call()}',
+                  extra: <String, dynamic>{
+                    ...request.extra,
+                    _authRetryExtra: true,
+                  },
+                ),
+              );
+              return handler.resolve(retryResponse);
+            } on DioException catch (retryError) {
+              return handler.reject(retryError);
+            }
+          }
+          await onRefreshFailed?.call();
+        }
+
         if (status >= 400) {
           return handler.reject(
             DioException(
@@ -49,12 +90,40 @@ Dio buildDio({TokenProvider? tokenProvider}) {
         }
         return handler.next(response);
       },
-      onError: (error, handler) {
+      onError: (error, handler) async {
         if (kDebugMode) {
           debugPrint(
             '[API] сбой ${error.requestOptions.uri}: ${error.type}',
           );
         }
+
+        final status = error.response?.statusCode ?? 0;
+        final request = error.requestOptions;
+        if (status == 401 &&
+            !_isAuthPath(request.path) &&
+            request.extra[_authRetryExtra] != true &&
+            onUnauthorized != null) {
+          final refreshed = await onUnauthorized();
+          if (refreshed) {
+            try {
+              final retryResponse = await dio.fetch<dynamic>(
+                request.copyWith(
+                  headers: Map<String, dynamic>.from(request.headers)
+                    ..['Authorization'] = 'Bearer ${tokenProvider?.call()}',
+                  extra: <String, dynamic>{
+                    ...request.extra,
+                    _authRetryExtra: true,
+                  },
+                ),
+              );
+              return handler.resolve(retryResponse);
+            } on DioException catch (retryError) {
+              return handler.next(retryError);
+            }
+          }
+          await onRefreshFailed?.call();
+        }
+
         return handler.next(error);
       },
     ),
@@ -81,8 +150,12 @@ class _ReadRetryInterceptor extends Interceptor {
       return handler.next(err);
     }
 
-    final attempt = (request.extra['retryAttempt'] as int?) ?? 0;
     final status = err.response?.statusCode ?? 0;
+    if (status == 401 || status == 403) {
+      return handler.next(err);
+    }
+
+    final attempt = (request.extra['retryAttempt'] as int?) ?? 0;
     final retriable = err.type == DioExceptionType.connectionTimeout ||
         err.type == DioExceptionType.receiveTimeout ||
         err.type == DioExceptionType.sendTimeout ||

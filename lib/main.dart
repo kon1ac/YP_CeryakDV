@@ -1,10 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'core/api_client.dart';
-import 'core/auth_session.dart';
 import 'core/dictionary_cache.dart';
 import 'prefs.dart';
 import 'repositories/achievement_repository.dart';
@@ -20,10 +20,12 @@ import 'repositories/team_repository.dart';
 import 'router.dart';
 import 'state/achievement_list_notifier.dart';
 import 'state/arena_list_notifier.dart';
+import 'state/auth_notifier.dart';
 import 'state/contract_list_notifier.dart';
 import 'state/player_list_notifier.dart';
 import 'state/team_list_notifier.dart';
 import 'theme.dart';
+import 'widgets/inactivity_watcher.dart';
 
 Future<void> main() async {
   usePathUrlStrategy();
@@ -31,9 +33,13 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await AppPrefs.init();
 
-  final auth = AuthSession();
-  final dio = buildDio(tokenProvider: () => auth.accessToken);
-  await auth.ensureSignedIn(dio);
+  final auth = AuthNotifier();
+  final dio = buildDio(
+    tokenProvider: () => auth.accessToken,
+    onUnauthorized: auth.refreshTokens,
+  );
+  auth.bind(dio);
+  await auth.restore();
 
   runApp(StoreApp(dio: dio, auth: auth));
 }
@@ -42,7 +48,7 @@ class StoreApp extends StatefulWidget {
   const StoreApp({super.key, required this.dio, required this.auth});
 
   final Dio dio;
-  final AuthSession auth;
+  final AuthNotifier auth;
 
   @override
   State<StoreApp> createState() => _StoreAppState();
@@ -51,6 +57,7 @@ class StoreApp extends StatefulWidget {
 class _StoreAppState extends State<StoreApp> {
   final _theme = ThemeController();
   final _cache = DictionaryCache();
+  late final GoRouter _router = buildRouter(widget.auth);
 
   @override
   void dispose() {
@@ -64,7 +71,7 @@ class _StoreAppState extends State<StoreApp> {
     return MultiProvider(
       providers: [
         Provider<Dio>.value(value: widget.dio),
-        Provider<AuthSession>.value(value: widget.auth),
+        ChangeNotifierProvider<AuthNotifier>.value(value: widget.auth),
         Provider<DictionaryCache>.value(value: _cache),
         ProxyProvider2<Dio, DictionaryCache, HockeyPlayerRepository>(
           update: (_, dio, cache, previous) =>
@@ -122,13 +129,15 @@ class _StoreAppState extends State<StoreApp> {
         controller: _theme,
         child: AnimatedBuilder(
           animation: _theme,
-          builder: (context, _) => MaterialApp.router(
-            title: 'Витрина хоккейных игроков',
-            debugShowCheckedModeBanner: false,
-            theme: appTheme(Brightness.light),
-            darkTheme: appTheme(Brightness.dark),
-            themeMode: _theme.mode,
-            routerConfig: appRouter,
+          builder: (context, _) => InactivityWatcher(
+            child: MaterialApp.router(
+              title: 'Витрина хоккейных игроков',
+              debugShowCheckedModeBanner: false,
+              theme: appTheme(Brightness.light),
+              darkTheme: appTheme(Brightness.dark),
+              themeMode: _theme.mode,
+              routerConfig: _router,
+            ),
           ),
         ),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/breakpoints.dart';
+
 class DetailRow {
   const DetailRow(this.label, this.value);
 
@@ -160,27 +162,51 @@ class EntityDetailsScreen extends StatelessWidget {
                   for (final row in section.rows)
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 150,
-                            child: Text(
-                              row.label,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          Expanded(child: Text(row.value)),
-                        ],
-                      ),
+                      child: _DetailEntry(label: row.label, value: row.value),
                     ),
                 ],
               ),
             ),
           ),
         ],
+      ],
+    );
+  }
+}
+
+class _DetailEntry extends StatelessWidget {
+  const _DetailEntry({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final compact = Breakpoints.isCompact(context);
+
+    if (compact) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: labelStyle),
+          const SizedBox(height: 2),
+          Text(value),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 140,
+          child: Text(label, style: labelStyle),
+        ),
+        Expanded(child: Text(value)),
       ],
     );
   }

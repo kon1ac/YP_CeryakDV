@@ -121,6 +121,8 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
       category: values['category']!,
       teamId: Validators.parseInt(values['teamId']) ?? 0,
       jerseyNumber: jerseyNumber,
+      status: values['status'] ?? 'in_roster',
+      notes: values['notes']?.trim() ?? '',
       achievementIds: [
         for (final raw in values['achievementIds']!.split(','))
           if (Validators.parseInt(raw) != null) Validators.parseInt(raw)!,

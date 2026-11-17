@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/breakpoints.dart';
 import '../utils/validators.dart';
 
 class FormOption {
@@ -48,6 +49,7 @@ class TextFieldSpec extends FormFieldSpec {
     this.maxLines = 1,
     this.numeric = false,
     this.email = false,
+    this.obscure = false,
     this.enabled = true,
   });
 
@@ -60,6 +62,8 @@ class TextFieldSpec extends FormFieldSpec {
   final bool numeric;
 
   final bool email;
+
+  final bool obscure;
 
   final bool enabled;
 
@@ -386,45 +390,73 @@ class _EntityFormScreenState extends State<EntityFormScreen> {
         ),
         body: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-            children: [
-              for (final section in widget.spec.sections) ...[
-                if (section.title.isNotEmpty) ...[
-                  Text(section.title, style: theme.textTheme.titleSmall),
-                  const SizedBox(height: 8),
-                ],
-                for (final field in section.fields) ...[
-                  _field(field),
-                  const SizedBox(height: 16),
-                ],
-                if (section.title.isNotEmpty) const SizedBox(height: 8),
-              ],
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _submitting ? null : _leave,
-                      child: const Text('Отмена'),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final narrow = constraints.maxWidth < Breakpoints.compact;
+              final cancel = OutlinedButton(
+                onPressed: _submitting ? null : _leave,
+                child: const Text('Отмена'),
+              );
+              final save = FilledButton(
+                onPressed: _submitting ? null : _submit,
+                child: _submitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(widget.spec.submitLabel),
+              );
+
+              return Align(
+                alignment: Alignment.topCenter,
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 640),
+                  child: ListView(
+                    padding: EdgeInsets.fromLTRB(
+                      narrow ? 12 : 16,
+                      16,
+                      narrow ? 12 : 16,
+                      32,
                     ),
+                    children: [
+                      for (final section in widget.spec.sections) ...[
+                        if (section.title.isNotEmpty) ...[
+                          Text(
+                            section.title,
+                            style: theme.textTheme.titleSmall,
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                        for (final field in section.fields) ...[
+                          _field(field),
+                          const SizedBox(height: 16),
+                        ],
+                        if (section.title.isNotEmpty) const SizedBox(height: 8),
+                      ],
+                      const SizedBox(height: 8),
+                      if (narrow)
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            save,
+                            const SizedBox(height: 8),
+                            cancel,
+                          ],
+                        )
+                      else
+                        Row(
+                          children: [
+                            Expanded(child: cancel),
+                            const SizedBox(width: 12),
+                            Expanded(child: save),
+                          ],
+                        ),
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: _submitting ? null : _submit,
-                      child: _submitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(widget.spec.submitLabel),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -436,7 +468,8 @@ class _EntityFormScreenState extends State<EntityFormScreen> {
       TextFieldSpec() => TextFormField(
           controller: _text[field.key],
           enabled: field.enabled && !_submitting,
-          maxLines: field.maxLines,
+          maxLines: field.obscure ? 1 : field.maxLines,
+          obscureText: field.obscure,
           keyboardType: field.numeric
               ? const TextInputType.numberWithOptions(decimal: true)
               : field.email
