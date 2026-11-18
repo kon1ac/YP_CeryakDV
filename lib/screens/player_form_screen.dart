@@ -57,8 +57,6 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
           achievementsOfTeam: model.achievementsOfTeam,
           editing: player != null,
           playerId: player?.id,
-          jerseyTaken: (number, {exceptId}) =>
-              _catalogJerseyTaken(model, number, exceptId),
           emailTaken: (email, {exceptId}) =>
               _catalogEmailTaken(model, email, exceptId),
         );
@@ -67,14 +65,6 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
       if (!mounted) return;
       setState(() => _error = e);
     }
-  }
-
-  bool _catalogJerseyTaken(
-    PlayerListNotifier model,
-    int number,
-    int? exceptId,
-  ) {
-    return model.jerseyTakenLocally(number, exceptId: exceptId);
   }
 
   bool _catalogEmailTaken(
@@ -93,11 +83,8 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
     final jerseyNumber = Validators.parseInt(values['jerseyNumber']);
     final email = values['contractEmail']!.trim();
 
+    // Дубликат номера/email — с сервера (422), не режем запрос на клиенте.
     final errors = <String, String>{};
-    if (jerseyNumber != null &&
-        model.jerseyTakenLocally(jerseyNumber, exceptId: widget.playerId)) {
-      errors['jerseyNumber'] = 'Этот номер уже занят в лиге';
-    }
     if (email.isNotEmpty &&
         model.emailTakenLocally(email, exceptId: widget.playerId)) {
       errors['contractEmail'] = 'Этот адрес уже указан у другого игрока';
@@ -141,7 +128,17 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
       await model.load();
       return const FormSubmitResult(true);
     } on ValidationException catch (error) {
-      return FormSubmitResult.failure(error.errors);
+      final mapped = <String, String>{
+        for (final entry in error.errors.entries) entry.key: entry.value,
+      };
+      if (mapped.containsKey('contract.email')) {
+        mapped['contractEmail'] = mapped.remove('contract.email')!;
+      }
+      if (mapped.isEmpty) {
+        mapped[''] = error.message;
+        mapped['jerseyNumber'] = error.message;
+      }
+      return FormSubmitResult.failure(mapped);
     } on ConflictException catch (error) {
       return FormSubmitResult.failure({'': error.message});
     } on ApiException catch (error) {

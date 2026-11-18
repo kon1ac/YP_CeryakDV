@@ -102,7 +102,6 @@ FormSpec playerFormSpec({
   required List<Achievement> achievements,
   required Set<int> Function(int teamId) achievementsOfTeam,
   required bool editing,
-  required bool Function(int number, {int? exceptId}) jerseyTaken,
   required bool Function(String email, {int? exceptId}) emailTaken,
   int? playerId,
 }) {
@@ -158,6 +157,8 @@ FormSpec playerFormSpec({
             label: 'Игровой номер',
             initial: data.jerseyNumber,
             numeric: true,
+            // Уникальность номера проверяет сервер (422) — так в Network
+            // виден реальный ответ валидации, как требует ПР4.
             validator: Validators.all([
               (value) => Validators.required(value, message: 'Укажите номер'),
               (value) => Validators.integer(
@@ -165,14 +166,6 @@ FormSpec playerFormSpec({
                     min: 1,
                     max: 99,
                     rangeMessage: 'Номер от 1 до 99',
-                  ),
-              (value) => Validators.unique(
-                    value,
-                    exists: (candidate) => jerseyTaken(
-                      int.parse(candidate),
-                      exceptId: playerId,
-                    ),
-                    message: 'Этот номер уже занят в лиге',
                   ),
             ]),
           ),

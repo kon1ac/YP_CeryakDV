@@ -297,7 +297,17 @@ class _EntityFormScreenState extends State<EntityFormScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     setState(() => _submitting = true);
-    final result = await widget.onSubmit(_values);
+    FormSubmitResult result;
+    try {
+      result = await widget.onSubmit(_values);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('$error')));
+      return;
+    }
     if (!mounted) return;
     setState(() => _submitting = false);
 
@@ -310,15 +320,20 @@ class _EntityFormScreenState extends State<EntityFormScreen> {
 
     final general = result.errors[''];
     final fieldErrors = Map<String, String>.from(result.errors)..remove('');
+    // Сервер может отдать contract.email — мапим на ключ поля формы.
+    if (fieldErrors.containsKey('contract.email')) {
+      fieldErrors['contractEmail'] =
+          fieldErrors.remove('contract.email') ?? '';
+    }
     setState(() => _serverErrors.addAll(fieldErrors));
     _formKey.currentState?.validate();
-    if (general != null || fieldErrors.isEmpty) {
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(general ?? 'Не удалось сохранить')),
-        );
-    }
+    final toast = general ??
+        (fieldErrors.isEmpty
+            ? 'Не удалось сохранить'
+            : fieldErrors.values.first);
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(toast)));
   }
 
   Future<bool> _confirmLeave() async {
