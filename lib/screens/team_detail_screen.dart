@@ -12,7 +12,7 @@ import '../widgets/entity_details.dart';
 class TeamDetailScreen extends StatefulWidget {
   const TeamDetailScreen({super.key, required this.teamId});
 
-  final int teamId;
+  final String teamId;
 
   @override
   State<TeamDetailScreen> createState() => _TeamDetailScreenState();
@@ -72,7 +72,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     }
   }
 
-  Future<void> _remove(int id) async {
+  Future<void> _remove(String id) async {
     final model = context.read<TeamListNotifier>();
     final router = GoRouter.of(context);
     await model.hardDelete(id);
@@ -80,7 +80,7 @@ class _TeamDetailScreenState extends State<TeamDetailScreen> {
     router.go('/teams');
   }
 
-  Future<void> _restore(int id) async {
+  Future<void> _restore(String id) async {
     final model = context.read<TeamListNotifier>();
     await model.restore(id);
     if (!mounted) return;

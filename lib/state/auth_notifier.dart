@@ -54,6 +54,8 @@ class AuthNotifier extends ChangeNotifier {
 
   bool get canAccessOffers => has(AppRole.sponsor);
 
+  bool get canAccessDashboard => has(AppRole.sponsor);
+
   bool get canAccessScoutTools {
     final role = _user?.role;
     return role == AppRole.scout || role == AppRole.admin;

@@ -1,8 +1,9 @@
+import '../core/id_codec.dart';
 import 'list_query.dart';
 
 class Arena implements Identifiable {
   @override
-  final int id;
+  final String id;
 
   final String name;
 
@@ -57,14 +58,12 @@ class Arena implements Identifiable {
       };
 
   factory Arena.fromJson(Map<String, dynamic> json) => Arena(
-        id: json['id'] as int? ?? 0,
+        id: readId(json['id']),
         name: json['name'] as String? ?? '',
         city: json['city'] as String? ?? '',
-        capacity: json['capacity'] as int? ?? 0,
-        teamCount: json['teamCount'] as int? ?? 0,
-        deletedAt: json['deletedAt'] == null
-            ? null
-            : DateTime.tryParse(json['deletedAt'] as String),
+        capacity: (json['capacity'] as num?)?.toInt() ?? 0,
+        teamCount: (json['teamCount'] as num?)?.toInt() ?? 0,
+        deletedAt: readDate(json['deletedAt']),
       );
 
   Map<String, dynamic> toApiBody() => {

@@ -12,7 +12,7 @@ import '../widgets/entity_details.dart';
 class PlayerDetailScreen extends StatefulWidget {
   const PlayerDetailScreen({super.key, required this.playerId});
 
-  final int playerId;
+  final String playerId;
 
   @override
   State<PlayerDetailScreen> createState() => _PlayerDetailScreenState();
@@ -73,7 +73,7 @@ class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
     }
   }
 
-  Future<void> _remove(int id) async {
+  Future<void> _remove(String id) async {
     final model = context.read<PlayerListNotifier>();
     final auth = context.read<AuthNotifier>();
     final router = GoRouter.of(context);
@@ -87,7 +87,7 @@ class _PlayerDetailScreenState extends State<PlayerDetailScreen> {
     router.go('/players');
   }
 
-  Future<void> _restore(int id) async {
+  Future<void> _restore(String id) async {
     final model = context.read<PlayerListNotifier>();
     await model.restore(id);
     if (!mounted) return;

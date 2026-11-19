@@ -11,7 +11,7 @@ import '../widgets/entity_details.dart';
 class ArenaDetailScreen extends StatefulWidget {
   const ArenaDetailScreen({super.key, required this.arenaId});
 
-  final int arenaId;
+  final String arenaId;
 
   @override
   State<ArenaDetailScreen> createState() => _ArenaDetailScreenState();
@@ -72,7 +72,7 @@ class _ArenaDetailScreenState extends State<ArenaDetailScreen> {
     }
   }
 
-  Future<void> _delete(int id) async {
+  Future<void> _delete(String id) async {
     final repository = context.read<ArenaRepository>();
     final model = context.read<ArenaListNotifier>();
     final router = GoRouter.of(context);
@@ -89,7 +89,7 @@ class _ArenaDetailScreenState extends State<ArenaDetailScreen> {
     }
   }
 
-  Future<void> _restore(int id) async {
+  Future<void> _restore(String id) async {
     final model = context.read<ArenaListNotifier>();
     await model.restore(id);
     if (!mounted) return;

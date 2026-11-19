@@ -21,7 +21,7 @@ abstract class EntityListNotifier<T extends Identifiable, Q extends ListQuery<Q>
   String? _error;
   Timer? _debounceTimer;
   String? _pendingSearch;
-  final Set<int> _selectedIds = {};
+  final Set<String> _selectedIds = {};
 
   void Function(Q query)? onQueryChanged;
 
@@ -35,7 +35,7 @@ abstract class EntityListNotifier<T extends Identifiable, Q extends ListQuery<Q>
 
   String? get error => _error;
 
-  Set<int> get selected => Set.unmodifiable(_selectedIds);
+  Set<String> get selected => Set.unmodifiable(_selectedIds);
 
   bool get hasSelection => _selectedIds.isNotEmpty;
 
@@ -43,9 +43,9 @@ abstract class EntityListNotifier<T extends Identifiable, Q extends ListQuery<Q>
 
   Future<PageResult<T>> fetch(Q query);
 
-  Future<void> mutateOne(int id, MutationMode mode);
+  Future<void> mutateOne(String id, MutationMode mode);
 
-  Future<int> mutateMany(List<int> ids, MutationMode mode);
+  Future<int> mutateMany(List<String> ids, MutationMode mode);
 
   Q withoutFilters(Q query);
 
@@ -110,7 +110,7 @@ abstract class EntityListNotifier<T extends Identifiable, Q extends ListQuery<Q>
     await applyQuery(withoutFilters(_query));
   }
 
-  void toggleSelection(int id) {
+  void toggleSelection(String id) {
     if (!_selectedIds.add(id)) _selectedIds.remove(id);
     notifyListeners();
   }
@@ -132,13 +132,13 @@ abstract class EntityListNotifier<T extends Identifiable, Q extends ListQuery<Q>
     notifyListeners();
   }
 
-  Future<void> softDelete(int id) => _mutate(id, MutationMode.softDelete);
+  Future<void> softDelete(String id) => _mutate(id, MutationMode.softDelete);
 
-  Future<void> hardDelete(int id) => _mutate(id, MutationMode.hardDelete);
+  Future<void> hardDelete(String id) => _mutate(id, MutationMode.hardDelete);
 
-  Future<void> restore(int id) => _mutate(id, MutationMode.restore);
+  Future<void> restore(String id) => _mutate(id, MutationMode.restore);
 
-  Future<void> _mutate(int id, MutationMode mode) async {
+  Future<void> _mutate(String id, MutationMode mode) async {
     await mutateOne(id, mode);
     _selectedIds.remove(id);
     await load();

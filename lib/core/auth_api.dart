@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 
 import '../models/app_user.dart';
 import 'api_exceptions.dart';
-import 'page_parser.dart';
+import 'pb_client.dart';
 
 class AuthTokens {
   const AuthTokens({
@@ -18,11 +18,14 @@ class AuthTokens {
   final AppUser user;
 
   factory AuthTokens.fromJson(Map<String, dynamic> json) {
-    final userJson = json['user'];
+    final token = json['token'] as String? ??
+        json['accessToken'] as String? ??
+        '';
+    final userJson = json['record'] ?? json['user'];
     return AuthTokens(
-      accessToken: json['accessToken'] as String? ?? '',
-      refreshToken: json['refreshToken'] as String? ?? '',
-      expiresIn: (json['expiresIn'] as num?)?.toInt() ?? 0,
+      accessToken: token,
+      refreshToken: json['refreshToken'] as String? ?? token,
+      expiresIn: (json['expiresIn'] as num?)?.toInt() ?? 3600,
       user: AppUser.fromJson(
         userJson is Map
             ? Map<String, dynamic>.from(userJson)
@@ -33,20 +36,25 @@ class AuthTokens {
 }
 
 class AuthApi {
-  AuthApi(this._dio);
+  AuthApi(Dio dio) : _pb = PbClient(dio);
 
-  final Dio _dio;
+  final PbClient _pb;
 
   Future<AuthTokens> login({
     required String username,
     required String password,
   }) {
     return guard(() async {
-      final response = await _dio.post<dynamic>(
-        '/auth/login',
-        data: {'username': username, 'password': password},
+      final identity = username.trim();
+      // PocketBase passwordAuth identityFields = email (username без UNIQUE).
+      final resolved = identity.contains('@')
+          ? identity
+          : '$identity@hockey.local';
+      final data = await _pb.authWithPassword(
+        identity: resolved,
+        password: password,
       );
-      return AuthTokens.fromJson(asJsonMap(response.data));
+      return AuthTokens.fromJson(data);
     });
   }
 
@@ -57,39 +65,46 @@ class AuthApi {
     required String email,
   }) {
     return guard(() async {
-      final response = await _dio.post<dynamic>(
-        '/auth/register',
-        data: {
-          'username': username,
-          'password': password,
-          'fullName': fullName,
-          'email': email,
-        },
-      );
-      return AppUser.fromJson(asJsonMap(response.data));
+      final data = await _pb.authRegister({
+        'username': username,
+        'email': email,
+        'emailVisibility': true,
+        'password': password,
+        'passwordConfirm': password,
+        'name': fullName,
+        'fullName': fullName,
+        'role': 'scout',
+      });
+      return AppUser.fromJson(data);
     });
   }
 
   Future<AuthTokens> refresh(String refreshToken) {
     return guard(() async {
-      final response = await _dio.post<dynamic>(
-        '/auth/refresh',
-        data: {'refreshToken': refreshToken},
-      );
-      return AuthTokens.fromJson(asJsonMap(response.data));
+      // PocketBase uses the same auth token for refresh.
+      final data = await _pb.authRefresh();
+      final tokens = AuthTokens.fromJson(data);
+      if (tokens.accessToken.isEmpty && refreshToken.isNotEmpty) {
+        return AuthTokens(
+          accessToken: refreshToken,
+          refreshToken: refreshToken,
+          expiresIn: tokens.expiresIn,
+          user: tokens.user,
+        );
+      }
+      return tokens;
     });
   }
 
   Future<AppUser> me() {
     return guard(() async {
-      final response = await _dio.get<dynamic>('/auth/me');
-      return AppUser.fromJson(asJsonMap(response.data));
+      final data = await _pb.authRefresh();
+      final tokens = AuthTokens.fromJson(data);
+      return tokens.user;
     });
   }
 
-  Future<void> logout() {
-    return guard(() async {
-      await _dio.post<dynamic>('/auth/logout');
-    });
+  Future<void> logout() async {
+    // Client-side only for PocketBase.
   }
 }

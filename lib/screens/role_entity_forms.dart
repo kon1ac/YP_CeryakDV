@@ -54,7 +54,7 @@ String? _passwordRules(String? value, {required bool required}) {
 class OfferFormScreen extends StatefulWidget {
   const OfferFormScreen({super.key, this.offerId});
 
-  final int? offerId;
+  final String? offerId;
 
   @override
   State<OfferFormScreen> createState() => _OfferFormScreenState();
@@ -151,8 +151,8 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
     final api = RoleEntityApi(context.read<Dio>());
     final salaryRaw = values['salary']!.trim().replaceAll(',', '.');
     final body = {
-      'playerId': int.parse(values['playerId']!),
-      'teamId': int.parse(values['teamId']!),
+      'player': values['playerId']!,
+      'team': values['teamId']!,
       'salary': double.parse(salaryRaw),
       'status': values['status']!,
       'message': values['message']!.trim(),
@@ -204,7 +204,7 @@ class _OfferFormScreenState extends State<OfferFormScreen> {
 class ScoutReportFormScreen extends StatefulWidget {
   const ScoutReportFormScreen({super.key, this.reportId});
 
-  final int? reportId;
+  final String? reportId;
 
   @override
   State<ScoutReportFormScreen> createState() => _ScoutReportFormScreenState();
@@ -289,7 +289,7 @@ class _ScoutReportFormScreenState extends State<ScoutReportFormScreen> {
   Future<FormSubmitResult> _submit(Map<String, String> values) async {
     final api = RoleEntityApi(context.read<Dio>());
     final body = {
-      'playerId': int.parse(values['playerId']!),
+      'player': values['playerId']!,
       'rating': int.parse(values['rating']!),
       'verdict': values['verdict']!,
       'summary': values['summary']!.trim(),
@@ -341,7 +341,7 @@ class _ScoutReportFormScreenState extends State<ScoutReportFormScreen> {
 class ShortlistFormScreen extends StatefulWidget {
   const ShortlistFormScreen({super.key, this.entryId});
 
-  final int? entryId;
+  final String? entryId;
 
   @override
   State<ShortlistFormScreen> createState() => _ShortlistFormScreenState();
@@ -410,7 +410,7 @@ class _ShortlistFormScreenState extends State<ShortlistFormScreen> {
   Future<FormSubmitResult> _submit(Map<String, String> values) async {
     final api = RoleEntityApi(context.read<Dio>());
     final body = {
-      'playerId': int.parse(values['playerId']!),
+      'player': values['playerId']!,
       'note': values['note']!.trim(),
     };
     try {
@@ -462,7 +462,7 @@ class _ShortlistFormScreenState extends State<ShortlistFormScreen> {
 class UserFormScreen extends StatefulWidget {
   const UserFormScreen({super.key, this.userId});
 
-  final int? userId;
+  final String? userId;
 
   @override
   State<UserFormScreen> createState() => _UserFormScreenState();

@@ -2,15 +2,15 @@ import 'package:dio/dio.dart';
 
 import '../core/api_exceptions.dart';
 import '../core/page_parser.dart';
+import '../core/pb_client.dart';
 import '../widgets/entity_form.dart';
 
-/// Тонкий клиент для ролевых коллекций (отчёты / шортлист / users / офферы).
+/// Клиент ролевых коллекций PocketBase.
 class RoleEntityApi {
-  RoleEntityApi(this._dio);
+  RoleEntityApi(Dio dio) : _pb = PbClient(dio);
 
-  final Dio _dio;
+  final PbClient _pb;
 
-  /// Кэш справочников для селектов форм.
   static List<FormOption>? _playerOptions;
   static Future<List<FormOption>>? _playerOptionsFuture;
   static List<FormOption>? _teamOptions;
@@ -26,23 +26,57 @@ class RoleEntityApi {
     _teamOptionsFuture = null;
   }
 
+  String _collection(String endpoint) {
+    final path = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+    final head = path.split('/').first;
+    return switch (head) {
+      'offers' => 'transfer_offers',
+      'scout-reports' => 'scout_reports',
+      'shortlist' => 'shortlist_entries',
+      _ => head,
+    };
+  }
+
   Future<List<Map<String, dynamic>>> list(
     String endpoint, {
     int page = 1,
     int size = 100,
     String? q,
+    String? expand,
   }) {
     return guard(() async {
-      final response = await _dio.get<dynamic>(
-        endpoint,
-        queryParameters: {
-          'page': page,
-          'size': size,
-          if (q != null && q.isNotEmpty) 'q': q,
-        },
+      final collection = _collection(endpoint);
+      final searchFilter = switch (collection) {
+        'transfer_offers' when q != null && q.isNotEmpty =>
+          'message ~ ${pbQuote(q)} || status ~ ${pbQuote(q)}',
+        'scout_reports' when q != null && q.isNotEmpty =>
+          'summary ~ ${pbQuote(q)} || verdict ~ ${pbQuote(q)}',
+        'shortlist_entries' when q != null && q.isNotEmpty =>
+          'note ~ ${pbQuote(q)}',
+        'users' when q != null && q.isNotEmpty =>
+          'username ~ ${pbQuote(q)} || email ~ ${pbQuote(q)} || name ~ ${pbQuote(q)}',
+        _ when q != null && q.isNotEmpty => 'name ~ ${pbQuote(q)}',
+        _ => null,
+      };
+      final data = await _pb.list(
+        collection,
+        page: page,
+        perPage: size,
+        filter: joinFilters([
+          if (collection != 'users') pbActiveFilter(),
+          searchFilter,
+        ]),
+        expand: expand ??
+            switch (collection) {
+              'transfer_offers' => 'player,team,sponsor',
+              'scout_reports' => 'player,scout',
+              'shortlist_entries' => 'player,scout',
+              _ => null,
+            },
+        sort: '-created',
       );
       final pageResult = parsePageResult<Map<String, dynamic>>(
-        response.data,
+        data,
         (json) => json,
         fallbackSize: size,
       );
@@ -50,40 +84,47 @@ class RoleEntityApi {
     });
   }
 
-  Future<Map<String, dynamic>> getById(String endpoint, int id) {
+  Future<Map<String, dynamic>> getById(
+    String endpoint,
+    String id, {
+    String? expand,
+  }) {
     return guard(() async {
-      final response = await _dio.get<dynamic>('$endpoint/$id');
-      return asJsonMap(response.data);
+      return _pb.getOne(_collection(endpoint), id, expand: expand);
     });
   }
 
   Future<Map<String, dynamic>> create(
     String endpoint,
-    Map<String, dynamic> body,
-  ) {
+    Map<String, dynamic> body, {
+    String? expand,
+  }) {
     return guard(() async {
-      final response = await _dio.post<dynamic>(endpoint, data: body);
-      return asJsonMap(response.data);
+      return _pb.create(_collection(endpoint), body, expand: expand);
     });
   }
 
   Future<Map<String, dynamic>> update(
     String endpoint,
-    int id,
-    Map<String, dynamic> body,
-  ) {
+    String id,
+    Map<String, dynamic> body, {
+    String? expand,
+  }) {
     return guard(() async {
-      final response = await _dio.put<dynamic>('$endpoint/$id', data: body);
-      return asJsonMap(response.data);
+      return _pb.update(_collection(endpoint), id, body, expand: expand);
     });
   }
 
-  Future<void> delete(String endpoint, int id, {bool hard = false}) {
+  Future<void> delete(String endpoint, String id, {bool hard = false}) {
     return guard(() async {
-      await _dio.delete<dynamic>(
-        '$endpoint/$id',
-        queryParameters: hard ? const {'hard': 'true'} : null,
-      );
+      final collection = _collection(endpoint);
+      if (hard) {
+        await _pb.delete(collection, id);
+      } else {
+        await _pb.update(collection, id, {
+          'deletedAt': DateTime.now().toUtc().toIso8601String(),
+        });
+      }
     });
   }
 

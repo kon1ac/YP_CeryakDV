@@ -1,3 +1,4 @@
+import '../core/id_codec.dart';
 import 'list_query.dart';
 
 class ContractEntry implements Identifiable {
@@ -14,9 +15,9 @@ class ContractEntry implements Identifiable {
   });
 
   @override
-  final int id;
+  final String id;
 
-  final int playerId;
+  final String playerId;
 
   final String playerName;
 
@@ -41,10 +42,11 @@ class ContractEntry implements Identifiable {
 
   bool get isOpenEnded => expiresAt == null;
 
-  bool get isExpired => expiresAt != null && expiresAt!.isBefore(DateTime.now());
+  bool get isExpired =>
+      expiresAt != null && expiresAt!.isBefore(DateTime.now());
 
   ContractEntry copyWith({
-    int? playerId,
+    String? playerId,
     String? playerName,
     int? number,
     String? email,
@@ -80,35 +82,37 @@ class ContractEntry implements Identifiable {
       };
 
   factory ContractEntry.fromJson(Map<String, dynamic> json) {
-    final player = json['player'];
+    final expand = json['expand'];
+    final expandMap = expand is Map
+        ? Map<String, dynamic>.from(expand)
+        : const <String, dynamic>{};
+    final player = json['player'] ?? expandMap['player'];
     final playerMap = player is Map
         ? Map<String, dynamic>.from(player)
         : const <String, dynamic>{};
     return ContractEntry(
-      id: json['id'] as int? ?? 0,
-      playerId: json['playerId'] as int? ?? playerMap['id'] as int? ?? 0,
+      id: readId(json['id']),
+      playerId: readId(json['playerId'] ?? json['player'] ?? playerMap['id']),
       playerName:
           json['playerName'] as String? ?? playerMap['name'] as String? ?? '',
-      number: json['number'] as int? ?? 0,
+      number: (json['number'] as num?)?.toInt() ?? 0,
       email: json['email'] as String? ?? '',
       salary: (json['salary'] as num?)?.toDouble() ?? 0,
-      signedAt: DateTime.tryParse(json['signedAt'] as String? ?? '') ??
+      signedAt: readDate(json['signedAt']) ??
           DateTime.fromMillisecondsSinceEpoch(0),
-      expiresAt: json['expiresAt'] == null
-          ? null
-          : DateTime.tryParse(json['expiresAt'] as String),
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.tryParse(json['deletedAt'] as String),
+      expiresAt: readDate(json['expiresAt']),
+      deletedAt: readDate(json['deletedAt']),
     );
   }
 
   Map<String, dynamic> toApiBody() => {
+        'player': playerId,
         'number': number,
         'email': email,
         'salary': salary,
-        'signedAt': signedAt.toIso8601String(),
-        'expiresAt': expiresAt?.toIso8601String(),
+        'signedAt': signedAt.toIso8601String().split('T').first,
+        if (expiresAt != null)
+          'expiresAt': expiresAt!.toIso8601String().split('T').first,
       };
 
   @override

@@ -15,7 +15,9 @@ import 'repositories/api_hockey_player_repository.dart';
 import 'repositories/api_team_repository.dart';
 import 'repositories/arena_repository.dart';
 import 'repositories/contract_repository.dart';
+import 'repositories/dashboard_repository.dart';
 import 'repositories/hockey_player_repository.dart';
+import 'repositories/role_entity_api.dart';
 import 'repositories/team_repository.dart';
 import 'router.dart';
 import 'state/achievement_list_notifier.dart';
@@ -123,6 +125,12 @@ class _StoreAppState extends State<StoreApp> {
               ContractListNotifier(context.read<ContractRepository>()),
           update: (_, repository, previous) =>
               previous ?? ContractListNotifier(repository),
+        ),
+        ProxyProvider<Dio, DashboardRepository>(
+          update: (_, dio, previous) => previous ?? DashboardRepository(dio),
+        ),
+        ProxyProvider<Dio, RoleEntityApi>(
+          update: (_, dio, previous) => previous ?? RoleEntityApi(dio),
         ),
       ],
       child: ThemeScope(

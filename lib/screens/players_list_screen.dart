@@ -257,18 +257,18 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
           ),
           SizedBox(
             width: Breakpoints.filterFieldWidth(context, preferred: 190),
-            child: DropdownButtonFormField<int>(
+            child: DropdownButtonFormField<String>(
               initialValue: query.teamId,
               isExpanded: true,
               hint: const Text('Команда'),
               decoration: const InputDecoration(labelText: 'Команда'),
               items: [
-                const DropdownMenuItem<int>(
+                const DropdownMenuItem<String>(
                   value: null,
                   child: Text('Любая'),
                 ),
                 for (final team in model.teams)
-                  DropdownMenuItem<int>(value: team.id, child: Text(team.name)),
+                  DropdownMenuItem<String>(value: team.id, child: Text(team.name)),
               ],
               onChanged: (value) =>
                   model.applyQuery(query.copyWith(teamId: value)),
@@ -276,18 +276,18 @@ class _PlayersListScreenState extends State<PlayersListScreen> {
           ),
           SizedBox(
             width: Breakpoints.filterFieldWidth(context, preferred: 210),
-            child: DropdownButtonFormField<int>(
+            child: DropdownButtonFormField<String>(
               initialValue: query.achievementId,
               isExpanded: true,
               hint: const Text('Награда'),
               decoration: const InputDecoration(labelText: 'Награда'),
               items: [
-                const DropdownMenuItem<int>(
+                const DropdownMenuItem<String>(
                   value: null,
                   child: Text('Любая'),
                 ),
                 for (final achievement in model.achievements)
-                  DropdownMenuItem<int>(
+                  DropdownMenuItem<String>(
                     value: achievement.id,
                     child: Text(achievement.name),
                   ),

@@ -31,9 +31,9 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
 
   final String? status;
 
-  final int? teamId;
+  final String? teamId;
 
-  final int? achievementId;
+  final String? achievementId;
 
   final double? priceFrom;
 
@@ -72,9 +72,10 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
       search: search == unset ? this.search : search as String,
       category: category == unset ? this.category : category as String?,
       status: status == unset ? this.status : status as String?,
-      teamId: teamId == unset ? this.teamId : teamId as int?,
-      achievementId:
-          achievementId == unset ? this.achievementId : achievementId as int?,
+      teamId: teamId == unset ? this.teamId : teamId as String?,
+      achievementId: achievementId == unset
+          ? this.achievementId
+          : achievementId as String?,
       priceFrom: priceFrom == unset ? this.priceFrom : priceFrom as double?,
       priceTo: priceTo == unset ? this.priceTo : priceTo as double?,
       sortField: sortField ?? this.sortField,
@@ -100,8 +101,9 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
       if (search.trim().isNotEmpty) 'search': search.trim(),
       'category': ?category,
       'status': ?status,
-      if (teamId != null) 'teamId': '$teamId',
-      if (achievementId != null) 'achievementId': '$achievementId',
+      if (teamId != null && teamId!.isNotEmpty) 'teamId': teamId!,
+      if (achievementId != null && achievementId!.isNotEmpty)
+        'achievementId': achievementId!,
       if (priceFrom != null) 'priceFrom': plainNumber(priceFrom!),
       if (priceTo != null) 'priceTo': plainNumber(priceTo!),
     };
@@ -109,12 +111,15 @@ class PlayerQuery extends ListQuery<PlayerQuery> {
 
   factory PlayerQuery.fromQueryParameters(Map<String, String?> params) {
     final (sortField, sortAscending) = parseSort(params['sort']);
+    final teamId = params['teamId']?.trim();
+    final achievementId = params['achievementId']?.trim();
     return PlayerQuery(
       search: params['search'] ?? '',
       category: params['category'],
       status: params['status'],
-      teamId: parseInt(params['teamId']),
-      achievementId: parseInt(params['achievementId']),
+      teamId: (teamId == null || teamId.isEmpty) ? null : teamId,
+      achievementId:
+          (achievementId == null || achievementId.isEmpty) ? null : achievementId,
       priceFrom: parseDouble(params['priceFrom']),
       priceTo: parseDouble(params['priceTo']),
       sortField: sortField,

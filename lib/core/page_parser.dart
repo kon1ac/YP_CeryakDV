@@ -14,11 +14,17 @@ PageResult<T> parsePageResult<T>(
       for (final item in rawItems)
         if (item is Map) fromJson(Map<String, dynamic>.from(item)),
   ];
+  final size = (map['size'] as num?)?.toInt() ??
+      (map['perPage'] as num?)?.toInt() ??
+      fallbackSize;
+  final total = (map['total'] as num?)?.toInt() ??
+      (map['totalItems'] as num?)?.toInt() ??
+      items.length;
   return PageResult<T>(
     items: items,
-    page: map['page'] as int? ?? 1,
-    size: map['size'] as int? ?? fallbackSize,
-    total: map['total'] as int? ?? items.length,
+    page: (map['page'] as num?)?.toInt() ?? 1,
+    size: size,
+    total: total,
   );
 }
 

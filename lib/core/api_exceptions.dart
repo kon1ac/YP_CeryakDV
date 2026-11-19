@@ -59,6 +59,38 @@ ApiException mapHttpError(int status, dynamic body) {
       ? (body['count'] as num).toInt()
       : null;
 
+  if (status == 400 && body is Map) {
+    final raw = body['data'];
+    if (raw is Map && raw.isNotEmpty) {
+      final errors = <String, String>{};
+      var looksUnique = false;
+      raw.forEach((key, value) {
+        if (value is Map) {
+          final code = '${value['code'] ?? ''}';
+          final msg = '${value['message'] ?? value}';
+          errors['$key'] = msg;
+          if (code.contains('unique') ||
+              msg.toLowerCase().contains('unique') ||
+              msg.toLowerCase().contains('уже')) {
+            looksUnique = true;
+          }
+        } else {
+          errors['$key'] = '$value';
+        }
+      });
+      if (looksUnique) {
+        return ConflictException(
+          message ?? 'Конфликт уникальности.',
+          count: count,
+        );
+      }
+      return ValidationException(
+        message ?? 'Ошибка валидации',
+        errors,
+      );
+    }
+  }
+
   return switch (status) {
     401 => UnauthorizedException(message ?? 'Требуется вход в систему.'),
     403 => ForbiddenException(
@@ -69,7 +101,7 @@ ApiException mapHttpError(int status, dynamic body) {
         message ?? 'Операция невозможна.',
         count: count,
       ),
-    422 => ValidationException(
+    400 || 422 => ValidationException(
         message ?? 'Ошибка валидации',
         (body is Map && body['errors'] is Map)
             ? (body['errors'] as Map).map((k, v) => MapEntry('$k', '$v'))

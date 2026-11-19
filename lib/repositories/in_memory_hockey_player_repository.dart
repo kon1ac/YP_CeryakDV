@@ -97,7 +97,7 @@ class InMemoryHockeyPlayerRepository implements HockeyPlayerRepository {
   }
 
   @override
-  Future<HockeyPlayer?> findById(int id) async {
+  Future<HockeyPlayer?> findById(String id) async {
     await Future<void>.delayed(_latency);
     final index = _players.indexWhere((p) => p.id == id);
     return index == -1 ? null : _decorate(_players[index]);
@@ -139,7 +139,7 @@ class InMemoryHockeyPlayerRepository implements HockeyPlayerRepository {
 
   Contract? _withFreshId(Contract? contract) {
     if (contract == null) return null;
-    if (contract.id > 0) return contract;
+    if (contract.id.isNotEmpty && contract.id != '0') return contract;
     return Contract(
       id: _catalog.nextContractId(),
       number: contract.number,
@@ -151,7 +151,7 @@ class InMemoryHockeyPlayerRepository implements HockeyPlayerRepository {
   }
 
   @override
-  Future<void> softDelete(int id) async {
+  Future<void> softDelete(String id) async {
     await Future<void>.delayed(_latency);
     final index = _indexOf(id);
     _players[index] = _players[index].copyWith(deletedAt: DateTime.now());
@@ -159,14 +159,14 @@ class InMemoryHockeyPlayerRepository implements HockeyPlayerRepository {
   }
 
   @override
-  Future<void> hardDelete(int id) async {
+  Future<void> hardDelete(String id) async {
     await Future<void>.delayed(_latency);
     _players.removeWhere((p) => p.id == id);
     await _catalog.persist();
   }
 
   @override
-  Future<void> restore(int id) async {
+  Future<void> restore(String id) async {
     await Future<void>.delayed(_latency);
     final index = _indexOf(id);
     _players[index] = _players[index].copyWith(clearDeletedAt: true);
@@ -174,7 +174,7 @@ class InMemoryHockeyPlayerRepository implements HockeyPlayerRepository {
   }
 
   @override
-  Future<int> deleteMany(List<int> ids, {bool physical = false}) async {
+  Future<int> deleteMany(List<String> ids, {bool physical = false}) async {
     await Future<void>.delayed(_latency);
     var count = 0;
     for (final id in ids) {
@@ -211,14 +211,14 @@ class InMemoryHockeyPlayerRepository implements HockeyPlayerRepository {
   }
 
   @override
-  Future<bool> jerseyNumberTaken(int number, {int? exceptId}) async =>
+  Future<bool> jerseyNumberTaken(int number, {String? exceptId}) async =>
       _catalog.jerseyNumberTaken(number, exceptPlayerId: exceptId);
 
   @override
-  Future<bool> contractEmailTaken(String email, {int? exceptId}) async =>
+  Future<bool> contractEmailTaken(String email, {String? exceptId}) async =>
       _catalog.contractEmailTaken(email, exceptPlayerId: exceptId);
 
-  int _indexOf(int id) {
+  int _indexOf(String id) {
     final index = _players.indexWhere((p) => p.id == id);
     if (index == -1) throw StateError('Игрок $id не найден');
     return index;

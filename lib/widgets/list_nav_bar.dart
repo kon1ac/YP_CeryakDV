@@ -8,6 +8,7 @@ import '../state/auth_notifier.dart';
 const double kListNavBarHeight = 56;
 
 enum ListDestination {
+  dashboard,
   players,
   teams,
   arenas,
@@ -36,6 +37,13 @@ class _NavItem {
 }
 
 const _allItems = <_NavItem>[
+  _NavItem(
+    destination: ListDestination.dashboard,
+    path: '/dashboard',
+    icon: Icons.insights_outlined,
+    selectedIcon: Icons.insights,
+    label: 'Дашборд',
+  ),
   _NavItem(
     destination: ListDestination.players,
     path: '/players',
@@ -158,6 +166,7 @@ class _ListNavBarState extends State<ListNavBar> {
 
   static bool _allowed(AuthNotifier auth, ListDestination destination) {
     return switch (destination) {
+      ListDestination.dashboard => auth.canAccessDashboard,
       ListDestination.players ||
       ListDestination.teams ||
       ListDestination.arenas ||

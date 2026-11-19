@@ -14,7 +14,7 @@ import 'entity_forms.dart';
 class TeamFormScreen extends StatefulWidget {
   const TeamFormScreen({super.key, this.teamId});
 
-  final int? teamId;
+  final String? teamId;
 
   @override
   State<TeamFormScreen> createState() => _TeamFormScreenState();
@@ -85,13 +85,13 @@ class _TeamFormScreenState extends State<TeamFormScreen> {
     }
 
     final base = _team ??
-        const Team(id: 0, name: '', city: '', arenaId: 0);
+        const Team(id: '', name: '', city: '', arenaId: '');
 
     final draft = base.copyWith(
       name: name,
       city: values['city']!.trim(),
       foundedYear: Validators.parseInt(values['foundedYear']) ?? 0,
-      arenaId: Validators.parseInt(values['arenaId']) ?? 0,
+      arenaId: (values['arenaId'] ?? '').trim(),
     );
 
     try {

@@ -10,7 +10,7 @@ import '../widgets/entity_details.dart';
 class AchievementDetailScreen extends StatefulWidget {
   const AchievementDetailScreen({super.key, required this.achievementId});
 
-  final int achievementId;
+  final String achievementId;
 
   @override
   State<AchievementDetailScreen> createState() =>
@@ -73,7 +73,7 @@ class _AchievementDetailScreenState extends State<AchievementDetailScreen> {
     }
   }
 
-  Future<void> _remove(int id) async {
+  Future<void> _remove(String id) async {
     final model = context.read<AchievementListNotifier>();
     final router = GoRouter.of(context);
     await model.hardDelete(id);
@@ -81,7 +81,7 @@ class _AchievementDetailScreenState extends State<AchievementDetailScreen> {
     router.go('/achievements');
   }
 
-  Future<void> _restore(int id) async {
+  Future<void> _restore(String id) async {
     final model = context.read<AchievementListNotifier>();
     await model.restore(id);
     if (!mounted) return;

@@ -1,9 +1,10 @@
+import '../core/id_codec.dart';
 import 'contract.dart';
 import 'list_query.dart';
 
 class HockeyPlayer implements Identifiable {
   @override
-  final int id;
+  final String id;
 
   final String name;
   final String description;
@@ -11,11 +12,11 @@ class HockeyPlayer implements Identifiable {
 
   final String category;
 
-  final int teamId;
+  final String teamId;
 
   final String teamName;
 
-  final List<int> achievementIds;
+  final List<String> achievementIds;
 
   final List<String> achievementNames;
 
@@ -70,9 +71,9 @@ class HockeyPlayer implements Identifiable {
     String? description,
     double? price,
     String? category,
-    int? teamId,
+    String? teamId,
     String? teamName,
-    List<int>? achievementIds,
+    List<String>? achievementIds,
     List<String>? achievementNames,
     Contract? contract,
     int? jerseyNumber,
@@ -116,10 +117,15 @@ class HockeyPlayer implements Identifiable {
       };
 
   factory HockeyPlayer.fromJson(Map<String, dynamic> json) {
-    final team = json['team'];
+    final expand = json['expand'];
+    final expandMap = expand is Map
+        ? Map<String, dynamic>.from(expand)
+        : const <String, dynamic>{};
+    final team = json['team'] ?? expandMap['team'];
     final teamMap =
         team is Map ? Map<String, dynamic>.from(team) : const <String, dynamic>{};
-    final achievementsRaw = json['achievements'];
+    final achievementsRaw =
+        json['achievements'] ?? expandMap['achievements_via_player'];
     final achievementMaps = achievementsRaw is List
         ? [
             for (final item in achievementsRaw)
@@ -127,35 +133,50 @@ class HockeyPlayer implements Identifiable {
           ]
         : const <Map<String, dynamic>>[];
     final idsFromExpanded = [
-      for (final item in achievementMaps) item['id'] as int? ?? 0,
-    ].where((id) => id > 0).toList();
+      for (final item in achievementMaps)
+        readId(item['achievement'] ?? item['id']),
+    ].where((id) => id.isNotEmpty).toList();
     final namesFromExpanded = [
-      for (final item in achievementMaps) item['name'] as String? ?? '',
+      for (final item in achievementMaps)
+        if (item['expand'] is Map &&
+            (item['expand'] as Map)['achievement'] is Map)
+          '${((item['expand'] as Map)['achievement'] as Map)['name'] ?? ''}'
+        else
+          item['name'] as String? ?? '',
     ].where((name) => name.isNotEmpty).toList();
 
+    Contract? contract;
+    final contractRaw = json['contract'] ?? expandMap['contracts_via_player'];
+    if (contractRaw is Map) {
+      contract = Contract.fromJson(Map<String, dynamic>.from(contractRaw));
+    } else if (contractRaw is List && contractRaw.isNotEmpty) {
+      final first = contractRaw.first;
+      if (first is Map) {
+        contract = Contract.fromJson(Map<String, dynamic>.from(first));
+      }
+    }
+
     return HockeyPlayer(
-      id: json['id'] as int? ?? 0,
+      id: readId(json['id']),
       name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0,
       category: json['category'] as String? ?? '',
-      teamId: json['teamId'] as int? ?? teamMap['id'] as int? ?? 0,
+      teamId: readId(json['teamId'] ?? json['team'] ?? teamMap['id']),
       teamName: json['teamName'] as String? ?? teamMap['name'] as String? ?? '',
-      achievementIds: (json['achievementIds'] as List?)?.cast<int>() ??
-          idsFromExpanded,
-      achievementNames: (json['achievementNames'] as List?)?.cast<String>() ??
-          namesFromExpanded,
-      contract: json['contract'] == null
-          ? null
-          : Contract.fromJson(
-              Map<String, dynamic>.from(json['contract'] as Map),
-            ),
-      jerseyNumber: json['jerseyNumber'] as int?,
+      achievementIds: json['achievementIds'] is List
+          ? readIdList(json['achievementIds'])
+          : idsFromExpanded,
+      achievementNames: json['achievementNames'] is List
+          ? [
+              for (final n in json['achievementNames'] as List) '$n',
+            ]
+          : namesFromExpanded,
+      contract: contract,
+      jerseyNumber: (json['jerseyNumber'] as num?)?.toInt(),
       status: json['status'] as String? ?? 'in_roster',
       notes: json['notes'] as String? ?? '',
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.tryParse(json['deletedAt'] as String),
+      deletedAt: readDate(json['deletedAt']),
     );
   }
 
@@ -164,12 +185,10 @@ class HockeyPlayer implements Identifiable {
         'description': description,
         'price': price,
         'category': category,
-        'teamId': teamId,
-        'achievementIds': achievementIds,
+        'team': teamId,
         'jerseyNumber': jerseyNumber,
         'status': status,
         'notes': notes,
-        'contract': contract?.toJson(),
       };
 
   @override

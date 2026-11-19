@@ -32,14 +32,14 @@ class AchievementListNotifier
       _repository.find(query);
 
   @override
-  Future<void> mutateOne(int id, MutationMode mode) => switch (mode) {
+  Future<void> mutateOne(String id, MutationMode mode) => switch (mode) {
         MutationMode.softDelete => _repository.softDelete(id),
         MutationMode.hardDelete => _repository.hardDelete(id),
         MutationMode.restore => _repository.restore(id),
       };
 
   @override
-  Future<int> mutateMany(List<int> ids, MutationMode mode) =>
+  Future<int> mutateMany(List<String> ids, MutationMode mode) =>
       _repository.deleteMany(ids,
           physical: mode == MutationMode.hardDelete);
 

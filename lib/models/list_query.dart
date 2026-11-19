@@ -12,7 +12,7 @@ int pickSize(String? raw) {
 bool isSearchActiveFrom(String search) => search.trim().isNotEmpty;
 
 abstract interface class Identifiable {
-  int get id;
+  String get id;
 
   DateTime? get deletedAt;
 

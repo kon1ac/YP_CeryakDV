@@ -1,3 +1,5 @@
+import '../core/id_codec.dart';
+
 class Contract {
   const Contract({
     required this.id,
@@ -6,9 +8,10 @@ class Contract {
     required this.salary,
     required this.signedAt,
     this.expiresAt,
+    this.playerId = '',
   });
 
-  final int id;
+  final String id;
 
   final int number;
 
@@ -19,6 +22,8 @@ class Contract {
   final DateTime signedAt;
 
   final DateTime? expiresAt;
+
+  final String playerId;
 
   bool get isOpenEnded => expiresAt == null;
 
@@ -31,6 +36,7 @@ class Contract {
     double? salary,
     DateTime? signedAt,
     DateTime? expiresAt,
+    String? playerId,
     bool clearExpiresAt = false,
   }) {
     return Contract(
@@ -40,6 +46,7 @@ class Contract {
       salary: salary ?? this.salary,
       signedAt: signedAt ?? this.signedAt,
       expiresAt: clearExpiresAt ? null : (expiresAt ?? this.expiresAt),
+      playerId: playerId ?? this.playerId,
     );
   }
 
@@ -50,33 +57,29 @@ class Contract {
         'salary': salary,
         'signedAt': signedAt.toIso8601String(),
         'expiresAt': expiresAt?.toIso8601String(),
+        'playerId': playerId,
       };
 
   factory Contract.fromJson(Map<String, dynamic> json) => Contract(
-        id: json['id'] as int? ?? 0,
-        number: json['number'] as int? ?? 0,
+        id: readId(json['id']),
+        number: (json['number'] as num?)?.toInt() ?? 0,
         email: json['email'] as String? ?? '',
         salary: (json['salary'] as num?)?.toDouble() ?? 0,
-        signedAt: DateTime.tryParse(json['signedAt'] as String? ?? '') ??
+        signedAt: readDate(json['signedAt']) ??
             DateTime.fromMillisecondsSinceEpoch(0),
-        expiresAt: json['expiresAt'] == null
-            ? null
-            : DateTime.tryParse(json['expiresAt'] as String),
+        expiresAt: readDate(json['expiresAt']),
+        playerId: readId(json['playerId'] ?? json['player']),
       );
 
-  @override
-  bool operator ==(Object other) =>
-      other is Contract &&
-      other.id == id &&
-      other.number == number &&
-      other.email == email &&
-      other.salary == salary &&
-      other.signedAt == signedAt &&
-      other.expiresAt == expiresAt;
-
-  @override
-  int get hashCode =>
-      Object.hash(id, number, email, salary, signedAt, expiresAt);
+  Map<String, dynamic> toApiBody() => {
+        if (playerId.isNotEmpty) 'player': playerId,
+        'number': number,
+        'email': email,
+        'salary': salary,
+        'signedAt': signedAt.toIso8601String().split('T').first,
+        if (expiresAt != null)
+          'expiresAt': expiresAt!.toIso8601String().split('T').first,
+      };
 
   @override
   String toString() => 'Contract($id, $number, $email)';

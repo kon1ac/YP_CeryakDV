@@ -41,11 +41,11 @@ class EntityTable<T extends Identifiable> extends StatelessWidget {
 
   final List<T> items;
 
-  final int Function(T item) idOf;
+  final String Function(T item) idOf;
 
-  final Set<int> selected;
+  final Set<String> selected;
 
-  final ValueChanged<int>? onToggleSelect;
+  final ValueChanged<String>? onToggleSelect;
 
   final VoidCallback? onToggleSelectAll;
 
@@ -82,7 +82,7 @@ class EntityTable<T extends Identifiable> extends StatelessWidget {
           rows: [
             for (final item in items)
               DataRow(
-                key: ValueKey<int>(idOf(item)),
+                key: ValueKey<String>(idOf(item)),
                 selected: selected.contains(idOf(item)),
                 onSelectChanged: onToggleSelect == null
                     ? null

@@ -1,8 +1,9 @@
+import '../core/id_codec.dart';
 import 'list_query.dart';
 
 class Achievement implements Identifiable {
   @override
-  final int id;
+  final String id;
 
   final String name;
 
@@ -57,14 +58,12 @@ class Achievement implements Identifiable {
       };
 
   factory Achievement.fromJson(Map<String, dynamic> json) => Achievement(
-        id: json['id'] as int? ?? 0,
+        id: readId(json['id']),
         name: json['name'] as String? ?? '',
         description: json['description'] as String? ?? '',
-        year: json['year'] as int? ?? 0,
-        holderCount: json['holderCount'] as int? ?? 0,
-        deletedAt: json['deletedAt'] == null
-            ? null
-            : DateTime.tryParse(json['deletedAt'] as String),
+        year: (json['year'] as num?)?.toInt() ?? 0,
+        holderCount: (json['holderCount'] as num?)?.toInt() ?? 0,
+        deletedAt: readDate(json['deletedAt']),
       );
 
   Map<String, dynamic> toApiBody() => {

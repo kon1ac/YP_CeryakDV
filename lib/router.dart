@@ -7,6 +7,7 @@ import 'screens/arena_detail_screen.dart';
 import 'screens/arena_form_screen.dart';
 import 'screens/arenas_list_screen.dart';
 import 'screens/contracts_list_screen.dart';
+import 'screens/dashboard_screen.dart';
 import 'screens/forbidden_screen.dart';
 import 'screens/login_screen.dart';
 import 'screens/not_found_screen.dart';
@@ -21,8 +22,11 @@ import 'screens/team_form_screen.dart';
 import 'screens/teams_list_screen.dart';
 import 'state/auth_notifier.dart';
 
-int? _idOf(GoRouterState state) =>
-    int.tryParse(state.pathParameters['id'] ?? '');
+String? _idOf(GoRouterState state) {
+  final raw = state.pathParameters['id'];
+  if (raw == null || raw.isEmpty) return null;
+  return raw;
+}
 
 bool _isPublic(String location) {
   final path = Uri.tryParse(location)?.path ?? location;
@@ -30,6 +34,9 @@ bool _isPublic(String location) {
 }
 
 String? _roleRedirect(AuthNotifier auth, String path) {
+  if (path.startsWith('/dashboard')) {
+    return auth.canAccessDashboard ? null : '/forbidden';
+  }
   if (path.startsWith('/users')) {
     return auth.canManageUsers ? null : '/forbidden';
   }
@@ -105,6 +112,10 @@ GoRouter buildRouter(AuthNotifier auth) {
         builder: (context, state) => const ForbiddenScreen(),
       ),
       GoRoute(
+        path: '/dashboard',
+        builder: (context, state) => const DashboardScreen(),
+      ),
+      GoRoute(
         path: '/players',
         builder: (context, state) => PlayersListScreen(uri: state.uri),
         routes: [
@@ -115,7 +126,7 @@ GoRouter buildRouter(AuthNotifier auth) {
           GoRoute(
             path: ':id',
             builder: (context, state) =>
-                PlayerDetailScreen(playerId: _idOf(state) ?? 0),
+                PlayerDetailScreen(playerId: _idOf(state) ?? ''),
             routes: [
               GoRoute(
                 path: 'edit',
@@ -137,7 +148,7 @@ GoRouter buildRouter(AuthNotifier auth) {
           GoRoute(
             path: ':id',
             builder: (context, state) =>
-                TeamDetailScreen(teamId: _idOf(state) ?? 0),
+                TeamDetailScreen(teamId: _idOf(state) ?? ''),
             routes: [
               GoRoute(
                 path: 'edit',
@@ -159,7 +170,7 @@ GoRouter buildRouter(AuthNotifier auth) {
           GoRoute(
             path: ':id',
             builder: (context, state) =>
-                ArenaDetailScreen(arenaId: _idOf(state) ?? 0),
+                ArenaDetailScreen(arenaId: _idOf(state) ?? ''),
             routes: [
               GoRoute(
                 path: 'edit',
@@ -185,7 +196,7 @@ GoRouter buildRouter(AuthNotifier auth) {
           GoRoute(
             path: ':id',
             builder: (context, state) =>
-                AchievementDetailScreen(achievementId: _idOf(state) ?? 0),
+                AchievementDetailScreen(achievementId: _idOf(state) ?? ''),
             routes: [
               GoRoute(
                 path: 'edit',

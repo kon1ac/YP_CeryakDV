@@ -19,7 +19,7 @@ class TeamQuery extends ListQuery<TeamQuery> {
 
   final String? city;
 
-  final int? arenaId;
+  final String? arenaId;
 
   final int? playersFrom;
 
@@ -53,7 +53,7 @@ class TeamQuery extends ListQuery<TeamQuery> {
     return TeamQuery(
       search: search == unset ? this.search : search as String,
       city: city == unset ? this.city : city as String?,
-      arenaId: arenaId == unset ? this.arenaId : arenaId as int?,
+      arenaId: arenaId == unset ? this.arenaId : arenaId as String?,
       playersFrom:
           playersFrom == unset ? this.playersFrom : playersFrom as int?,
       playersTo: playersTo == unset ? this.playersTo : playersTo as int?,
@@ -90,7 +90,7 @@ class TeamQuery extends ListQuery<TeamQuery> {
     return TeamQuery(
       search: params['search'] ?? '',
       city: params['city'],
-      arenaId: parseInt(params['arenaId']),
+      arenaId: params['arenaId'],
       playersFrom: parseInt(params['playersFrom']),
       playersTo: parseInt(params['playersTo']),
       sortField: sortField,

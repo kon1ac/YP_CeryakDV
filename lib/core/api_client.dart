@@ -12,7 +12,9 @@ const _authRetryExtra = 'authRetried';
 
 bool _isAuthPath(String path) {
   final normalized = path.toLowerCase();
-  return normalized.contains('/auth/');
+  return normalized.contains('/auth/') ||
+      normalized.contains('auth-with-password') ||
+      normalized.contains('auth-refresh');
 }
 
 Dio buildDio({

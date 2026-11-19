@@ -97,6 +97,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     autofillHints: const [AutofillHints.username],
                     decoration: const InputDecoration(
                       labelText: 'Логин',
+                      hintText: 'admin / admin@hockey.local',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                     validator: (value) => Validators.required(value),

@@ -1,3 +1,4 @@
+import '../core/id_codec.dart';
 import 'list_query.dart';
 
 class ScoutReport implements Identifiable {
@@ -13,10 +14,10 @@ class ScoutReport implements Identifiable {
   });
 
   @override
-  final int id;
-  final int playerId;
+  final String id;
+  final String playerId;
   final String playerName;
-  final int scoutUserId;
+  final String scoutUserId;
   final int rating;
   final String verdict;
   final String summary;
@@ -31,22 +32,32 @@ class ScoutReport implements Identifiable {
   String get label => '$playerName ($rating/10)';
 
   factory ScoutReport.fromJson(Map<String, dynamic> json) {
+    final expand = json['expand'];
+    final expandMap = expand is Map
+        ? Map<String, dynamic>.from(expand)
+        : const <String, dynamic>{};
+    final player = json['player'] ?? expandMap['player'];
+    final scout = json['scout'] ?? expandMap['scout'];
+    final playerMap =
+        player is Map ? Map<String, dynamic>.from(player) : const {};
     return ScoutReport(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      playerId: (json['playerId'] as num?)?.toInt() ?? 0,
-      playerName: json['playerName'] as String? ?? '',
-      scoutUserId: (json['scoutUserId'] as num?)?.toInt() ?? 0,
+      id: readId(json['id']),
+      playerId: readId(json['playerId'] ?? json['player'] ?? playerMap['id']),
+      playerName:
+          json['playerName'] as String? ?? playerMap['name'] as String? ?? '',
+      scoutUserId: readId(
+        json['scoutUserId'] ?? json['scout'] ?? (scout is Map ? scout['id'] : scout),
+      ),
       rating: (json['rating'] as num?)?.toInt() ?? 0,
       verdict: json['verdict'] as String? ?? 'watch',
       summary: json['summary'] as String? ?? '',
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.tryParse(json['deletedAt'] as String),
+      deletedAt: readDate(json['deletedAt']),
     );
   }
 
   Map<String, dynamic> toApiBody() => {
-        'playerId': playerId,
+        'player': playerId,
+        'scout': scoutUserId,
         'rating': rating,
         'verdict': verdict,
         'summary': summary,

@@ -8,19 +8,19 @@ import '../models/team.dart';
 abstract interface class HockeyPlayerRepository {
   Future<PageResult<HockeyPlayer>> find(PlayerQuery query);
 
-  Future<HockeyPlayer?> findById(int id);
+  Future<HockeyPlayer?> findById(String id);
 
   Future<HockeyPlayer> create(HockeyPlayer player);
 
   Future<HockeyPlayer> update(HockeyPlayer player);
 
-  Future<void> softDelete(int id);
+  Future<void> softDelete(String id);
 
-  Future<void> hardDelete(int id);
+  Future<void> hardDelete(String id);
 
-  Future<void> restore(int id);
+  Future<void> restore(String id);
 
-  Future<int> deleteMany(List<int> ids, {bool physical = false});
+  Future<int> deleteMany(List<String> ids, {bool physical = false});
 
   Future<List<Team>> teams();
 
@@ -28,7 +28,7 @@ abstract interface class HockeyPlayerRepository {
 
   Future<List<Achievement>> achievements();
 
-  Future<bool> jerseyNumberTaken(int number, {int? exceptId});
+  Future<bool> jerseyNumberTaken(int number, {String? exceptId});
 
-  Future<bool> contractEmailTaken(String email, {int? exceptId});
+  Future<bool> contractEmailTaken(String email, {String? exceptId});
 }

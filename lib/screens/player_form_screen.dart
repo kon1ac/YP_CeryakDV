@@ -14,7 +14,7 @@ import 'entity_forms.dart';
 class PlayerFormScreen extends StatefulWidget {
   const PlayerFormScreen({super.key, this.playerId});
 
-  final int? playerId;
+  final String? playerId;
 
   @override
   State<PlayerFormScreen> createState() => _PlayerFormScreenState();
@@ -70,7 +70,7 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
   bool _catalogEmailTaken(
     PlayerListNotifier model,
     String email,
-    int? exceptId,
+    String? exceptId,
   ) {
     return model.emailTakenLocally(email, exceptId: exceptId);
   }
@@ -93,12 +93,12 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
 
     final base = _player ??
         const HockeyPlayer(
-          id: 0,
+          id: '',
           name: '',
           description: '',
           price: 0,
           category: '',
-          teamId: 0,
+          teamId: '',
         );
 
     final draft = base.copyWith(
@@ -106,13 +106,13 @@ class _PlayerFormScreenState extends State<PlayerFormScreen> {
       description: values['description']!.trim(),
       price: double.tryParse(values['price']!.trim().replaceAll(',', '.')) ?? 0,
       category: values['category']!,
-      teamId: Validators.parseInt(values['teamId']) ?? 0,
+      teamId: (values['teamId'] ?? '').trim(),
       jerseyNumber: jerseyNumber,
       status: values['status'] ?? 'in_roster',
       notes: values['notes']?.trim() ?? '',
       achievementIds: [
         for (final raw in values['achievementIds']!.split(','))
-          if (Validators.parseInt(raw) != null) Validators.parseInt(raw)!,
+          if (raw.trim().isNotEmpty) raw.trim(),
       ],
       contract: contractFromValues(values),
       clearContract: contractFromValues(values) == null,

@@ -36,13 +36,21 @@ void main() {
       expect(p.canWriteCatalog, isTrue);
       expect(p.canManageDictionaries, isTrue);
       expect(p.canAccessOffers, isTrue);
+      expect(p.canAccessDashboard, isTrue);
       expect(p.canAccessScoutTools, isTrue);
       expect(p.canManageUsers, isTrue);
       expect(p.canHardDelete, isTrue);
       expect(p.canRestore, isTrue);
       expect(p.canOpenPath('/users'), isTrue);
+      expect(p.canOpenPath('/dashboard'), isTrue);
       expect(p.canOpenPath('/arenas/new'), isTrue);
       expect(p.canOpenPath('/scout-reports'), isTrue);
+    });
+
+    test('dashboard: admin/sponsor да, scout нет', () {
+      expect(const Permissions(AppRole.scout).canAccessDashboard, isFalse);
+      expect(const Permissions(AppRole.sponsor).canAccessDashboard, isTrue);
+      expect(const Permissions(AppRole.admin).canAccessDashboard, isTrue);
     });
 
     test('AppRole.hasAtLeast: иерархия scout < sponsor < admin', () {

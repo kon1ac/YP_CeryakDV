@@ -62,7 +62,7 @@ class PlayerFormData {
       category: player.category,
       price: Format.plain(player.price),
       jerseyNumber: player.jerseyNumber?.toString() ?? '',
-      teamId: player.teamId == 0 ? '' : '${player.teamId}',
+      teamId: player.teamId.isEmpty ? '' : player.teamId,
       status: player.status,
       notes: player.notes,
       achievementIds: [for (final id in player.achievementIds) '$id'],
@@ -100,10 +100,10 @@ FormSpec playerFormSpec({
   required PlayerFormData data,
   required List<Team> teams,
   required List<Achievement> achievements,
-  required Set<int> Function(int teamId) achievementsOfTeam,
+  required Set<String> Function(String teamId) achievementsOfTeam,
   required bool editing,
-  required bool Function(String email, {int? exceptId}) emailTaken,
-  int? playerId,
+  required bool Function(String email, {String? exceptId}) emailTaken,
+  String? playerId,
 }) {
   return FormSpec(
     title: editing ? 'Игрок' : 'Новый игрок',
@@ -218,20 +218,20 @@ FormSpec playerFormSpec({
                 FormOption('${achievement.id}', achievement.name),
             ],
             cascade: (values) {
-              final teamId = Validators.parseInt(values['teamId']);
+              final teamId = (values['teamId'] ?? '').trim();
               final current = <String>{
                 for (final raw in (values['achievementIds'] ?? '').split(','))
-                  if (Validators.parseInt(raw) != null) raw.trim(),
+                  if (raw.trim().isNotEmpty) raw.trim(),
               };
-              final available = teamId == null
-                  ? <int>{}
+              final available = teamId.isEmpty
+                  ? <String>{}
                   : achievementsOfTeam(teamId);
               return [
                 for (final achievement in achievements)
-                  if (teamId == null ||
+                  if (teamId.isEmpty ||
                       available.contains(achievement.id) ||
-                      current.contains('${achievement.id}'))
-                    FormOption('${achievement.id}', achievement.name),
+                      current.contains(achievement.id))
+                    FormOption(achievement.id, achievement.name),
               ];
             },
             validator: (value) {
@@ -354,7 +354,7 @@ FormSpec teamFormSpec({
             key: 'arenaId',
             label: 'Домашняя арена',
             helper: 'Список заполнен из репозитория арен',
-            initial: team == null || team.arenaId == 0 ? null : '${team.arenaId}',
+            initial: team == null || team.arenaId.isEmpty ? null : team.arenaId,
             options: [
               for (final arena in arenas) FormOption('${arena.id}', arena.name),
             ],
@@ -482,7 +482,7 @@ Contract? contractFromValues(Map<String, String> values) {
   if (empty) return null;
 
   return Contract(
-    id: 0,
+    id: '0',
     number: number ?? 0,
     email: email,
     salary: salary ?? 0,

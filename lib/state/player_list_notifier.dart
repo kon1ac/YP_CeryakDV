@@ -19,9 +19,9 @@ class PlayerListNotifier
 
   List<Arena> _arenas = const [];
 
-  final Map<int, int> _jerseys = {};
+  final Map<String, int> _jerseys = {};
 
-  final Map<int, String> _emails = {};
+  final Map<String, String> _emails = {};
 
   List<Team> get teams => _teams;
 
@@ -29,10 +29,10 @@ class PlayerListNotifier
 
   List<Arena> get arenas => _arenas;
 
-  Set<int> achievementsOfTeam(int teamId) =>
-      _achievementByTeam[teamId] ?? const <int>{};
+  Set<String> achievementsOfTeam(String teamId) =>
+      _achievementByTeam[teamId] ?? const <String>{};
 
-  final Map<int, Set<int>> _achievementByTeam = {};
+  final Map<String, Set<String>> _achievementByTeam = {};
 
   @override
   Future<void> init() async {
@@ -61,17 +61,17 @@ class PlayerListNotifier
       final email = player.contract?.email ?? '';
       if (email.isNotEmpty) _emails[player.id] = email.toLowerCase();
       if (player.achievementIds.isNotEmpty) {
-        (_achievementByTeam[player.teamId] ??= <int>{})
+        (_achievementByTeam[player.teamId] ??= <String>{})
             .addAll(player.achievementIds);
       }
     }
   }
 
-  bool jerseyTakenLocally(int number, {int? exceptId}) => _jerseys.entries.any(
+  bool jerseyTakenLocally(int number, {String? exceptId}) => _jerseys.entries.any(
         (entry) => entry.key != exceptId && entry.value == number,
       );
 
-  bool emailTakenLocally(String email, {int? exceptId}) {
+  bool emailTakenLocally(String email, {String? exceptId}) {
     final needle = email.trim().toLowerCase();
     return _emails.entries.any(
       (entry) => entry.key != exceptId && entry.value == needle,
@@ -83,14 +83,14 @@ class PlayerListNotifier
       _repository.find(query);
 
   @override
-  Future<void> mutateOne(int id, MutationMode mode) => switch (mode) {
+  Future<void> mutateOne(String id, MutationMode mode) => switch (mode) {
         MutationMode.softDelete => _repository.softDelete(id),
         MutationMode.hardDelete => _repository.hardDelete(id),
         MutationMode.restore => _repository.restore(id),
       };
 
   @override
-  Future<int> mutateMany(List<int> ids, MutationMode mode) =>
+  Future<int> mutateMany(List<String> ids, MutationMode mode) =>
       _repository.deleteMany(ids,
           physical: mode == MutationMode.hardDelete);
 

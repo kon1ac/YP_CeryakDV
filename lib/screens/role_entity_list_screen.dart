@@ -131,8 +131,9 @@ class _RoleEntityListScreenState extends State<RoleEntityListScreen> {
 
   Future<void> _confirmDelete(Map<String, dynamic> json) async {
     final api = _api;
-    final id = (json['id'] as num?)?.toInt();
-    if (api == null || id == null) return;
+    final idRaw = json['id'];
+    final id = idRaw == null ? null : '$idRaw';
+    if (api == null || id == null || id.isEmpty) return;
     final label = json['playerName'] ??
         json['fullName'] ??
         json['username'] ??
@@ -187,8 +188,9 @@ class _RoleEntityListScreenState extends State<RoleEntityListScreen> {
 
   void _edit(Map<String, dynamic> json) {
     final base = widget.createPath?.replaceAll('/new', '');
-    final id = (json['id'] as num?)?.toInt();
-    if (base == null || id == null) return;
+    final idRaw = json['id'];
+    final id = idRaw == null ? null : '$idRaw';
+    if (base == null || id == null || id.isEmpty) return;
     context.go('$base/$id/edit');
   }
 

@@ -43,21 +43,23 @@ class InMemoryCatalog {
 
   Future<void> Function(InMemoryCatalog catalog)? onChanged;
 
-  int nextPlayerId() => nextPlayerIdValue++;
+  String nextPlayerId() => '${nextPlayerIdValue++}';
 
-  int nextTeamId() => nextTeamIdValue++;
+  String nextTeamId() => '${nextTeamIdValue++}';
 
-  int nextArenaId() => nextArenaIdValue++;
+  String nextArenaId() => '${nextArenaIdValue++}';
 
-  int nextAchievementId() => nextAchievementIdValue++;
+  String nextAchievementId() => '${nextAchievementIdValue++}';
 
-  int nextContractId() {
+  String nextContractId() {
     var max = 0;
     for (final player in players) {
-      final id = player.contract?.id ?? 0;
-      if (id > max) max = id;
+      final id = player.contract?.id;
+      if (id == null || id.isEmpty) continue;
+      final n = int.tryParse(id) ?? 0;
+      if (n > max) max = n;
     }
-    return max + 1;
+    return '${max + 1}';
   }
 
   Future<void> persist() async {
@@ -66,27 +68,27 @@ class InMemoryCatalog {
     await handler(this);
   }
 
-  int activePlayerCount(int teamId) =>
+  int activePlayerCount(String teamId) =>
       players.where((p) => p.teamId == teamId && !p.isDeleted).length;
 
-  int teamCountForArena(int arenaId) =>
+  int teamCountForArena(String arenaId) =>
       teams.where((t) => t.arenaId == arenaId && !t.isDeleted).length;
 
-  int holderCountForAchievement(int achievementId) => players
+  int holderCountForAchievement(String achievementId) => players
       .where((p) => !p.isDeleted && p.achievementIds.contains(achievementId))
       .length;
 
-  List<HockeyPlayer> playersOfTeam(int teamId) =>
+  List<HockeyPlayer> playersOfTeam(String teamId) =>
       players.where((p) => p.teamId == teamId).toList();
 
-  List<Team> teamsOfArena(int arenaId) =>
+  List<Team> teamsOfArena(String arenaId) =>
       teams.where((t) => t.arenaId == arenaId).toList();
 
-  String teamNameById(int id) => _nameOf(teams, id);
+  String teamNameById(String id) => _nameOf(teams, id);
 
-  String arenaNameById(int id) => _nameOf(arenas, id);
+  String arenaNameById(String id) => _nameOf(arenas, id);
 
-  List<String> achievementNamesByIds(List<int> ids) {
+  List<String> achievementNamesByIds(List<String> ids) {
     final byId = {for (final a in achievements) a.id: a.name};
     return [
       for (final id in ids)
@@ -94,19 +96,19 @@ class InMemoryCatalog {
     ];
   }
 
-  Contract? contractById(int? id) {
-    if (id == null) return null;
+  Contract? contractById(String? id) {
+    if (id == null || id.isEmpty) return null;
     for (final player in players) {
       if (player.contract?.id == id) return player.contract;
     }
     return null;
   }
 
-  bool jerseyNumberTaken(int number, {int? exceptPlayerId}) => players.any(
+  bool jerseyNumberTaken(int number, {String? exceptPlayerId}) => players.any(
         (p) => p.id != exceptPlayerId && p.jerseyNumber == number,
       );
 
-  bool contractEmailTaken(String email, {int? exceptPlayerId}) {
+  bool contractEmailTaken(String email, {String? exceptPlayerId}) {
     final needle = email.trim().toLowerCase();
     return players.any((p) =>
         p.id != exceptPlayerId &&
@@ -114,7 +116,7 @@ class InMemoryCatalog {
         p.contract!.email.trim().toLowerCase() == needle);
   }
 
-  static String _nameOf(List<Identifiable> rows, int id) {
+  static String _nameOf(List<Identifiable> rows, String id) {
     for (final row in rows) {
       if (row.id == id) return row.label;
     }

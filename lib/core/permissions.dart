@@ -16,6 +16,8 @@ class Permissions {
 
   bool get canAccessOffers => role.hasAtLeast(AppRole.sponsor);
 
+  bool get canAccessDashboard => role.hasAtLeast(AppRole.sponsor);
+
   bool get canAccessScoutTools =>
       role == AppRole.scout || role == AppRole.admin;
 
@@ -27,6 +29,7 @@ class Permissions {
 
   bool canOpenPath(String path) {
     if (path.startsWith('/users')) return canManageUsers;
+    if (path.startsWith('/dashboard')) return canAccessDashboard;
     if (path.startsWith('/offers')) return canAccessOffers;
     if (path.startsWith('/scout-reports') || path.startsWith('/shortlist')) {
       return canAccessScoutTools;

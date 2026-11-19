@@ -14,7 +14,7 @@ import 'entity_forms.dart';
 class ArenaFormScreen extends StatefulWidget {
   const ArenaFormScreen({super.key, this.arenaId});
 
-  final int? arenaId;
+  final String? arenaId;
 
   @override
   State<ArenaFormScreen> createState() => _ArenaFormScreenState();
@@ -82,7 +82,7 @@ class _ArenaFormScreenState extends State<ArenaFormScreen> {
       );
     }
 
-    final base = _arena ?? const Arena(id: 0, name: '', city: '');
+    final base = _arena ?? const Arena(id: '', name: '', city: '');
 
     final draft = base.copyWith(
       name: name,

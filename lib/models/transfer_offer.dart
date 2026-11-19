@@ -1,3 +1,4 @@
+import '../core/id_codec.dart';
 import 'list_query.dart';
 
 class TransferOffer implements Identifiable {
@@ -15,12 +16,12 @@ class TransferOffer implements Identifiable {
   });
 
   @override
-  final int id;
-  final int playerId;
+  final String id;
+  final String playerId;
   final String playerName;
-  final int teamId;
+  final String teamId;
   final String teamName;
-  final int sponsorUserId;
+  final String sponsorUserId;
   final double salary;
   final String message;
   final String status;
@@ -35,25 +36,37 @@ class TransferOffer implements Identifiable {
   String get label => '$playerName → $teamName';
 
   factory TransferOffer.fromJson(Map<String, dynamic> json) {
+    final expand = json['expand'];
+    final expandMap = expand is Map
+        ? Map<String, dynamic>.from(expand)
+        : const <String, dynamic>{};
+    final player = json['player'] ?? expandMap['player'];
+    final team = json['team'] ?? expandMap['team'];
+    final sponsor = json['sponsor'] ?? expandMap['sponsor'];
+    final playerMap =
+        player is Map ? Map<String, dynamic>.from(player) : const {};
+    final teamMap = team is Map ? Map<String, dynamic>.from(team) : const {};
     return TransferOffer(
-      id: (json['id'] as num?)?.toInt() ?? 0,
-      playerId: (json['playerId'] as num?)?.toInt() ?? 0,
-      playerName: json['playerName'] as String? ?? '',
-      teamId: (json['teamId'] as num?)?.toInt() ?? 0,
-      teamName: json['teamName'] as String? ?? '',
-      sponsorUserId: (json['sponsorUserId'] as num?)?.toInt() ?? 0,
+      id: readId(json['id']),
+      playerId: readId(json['playerId'] ?? json['player'] ?? playerMap['id']),
+      playerName:
+          json['playerName'] as String? ?? playerMap['name'] as String? ?? '',
+      teamId: readId(json['teamId'] ?? json['team'] ?? teamMap['id']),
+      teamName: json['teamName'] as String? ?? teamMap['name'] as String? ?? '',
+      sponsorUserId: readId(
+        json['sponsorUserId'] ?? json['sponsor'] ?? (sponsor is Map ? sponsor['id'] : sponsor),
+      ),
       salary: (json['salary'] as num?)?.toDouble() ?? 0,
       message: json['message'] as String? ?? '',
       status: json['status'] as String? ?? 'pending',
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.tryParse(json['deletedAt'] as String),
+      deletedAt: readDate(json['deletedAt']),
     );
   }
 
   Map<String, dynamic> toApiBody() => {
-        'playerId': playerId,
-        'teamId': teamId,
+        'player': playerId,
+        'team': teamId,
+        'sponsor': sponsorUserId,
         'salary': salary,
         'message': message,
         'status': status,

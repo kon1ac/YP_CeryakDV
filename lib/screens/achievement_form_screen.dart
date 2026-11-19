@@ -14,7 +14,7 @@ import 'entity_forms.dart';
 class AchievementFormScreen extends StatefulWidget {
   const AchievementFormScreen({super.key, this.achievementId});
 
-  final int? achievementId;
+  final String? achievementId;
 
   @override
   State<AchievementFormScreen> createState() => _AchievementFormScreenState();
@@ -84,7 +84,7 @@ class _AchievementFormScreenState extends State<AchievementFormScreen> {
     }
 
     final base =
-        _achievement ?? const Achievement(id: 0, name: '', description: '');
+        _achievement ?? const Achievement(id: '', name: '', description: '');
 
     final draft = base.copyWith(
       name: name,

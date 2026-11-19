@@ -4,49 +4,75 @@ import '../core/api_exceptions.dart';
 import '../core/cancel_scope.dart';
 import '../core/dictionary_cache.dart';
 import '../core/page_parser.dart';
+import '../core/pb_client.dart';
 import '../models/arena.dart';
 import '../models/arena_query.dart';
 import '../models/page_result.dart';
 import 'arena_repository.dart';
 
 class ApiArenaRepository implements ArenaRepository {
-  ApiArenaRepository(this._dio, this._cache);
+  ApiArenaRepository(Dio dio, this._cache) : _pb = PbClient(dio);
 
-  final Dio _dio;
   final DictionaryCache _cache;
+  final PbClient _pb;
   final CancelScope _findCancel = CancelScope();
+
+  String _sort(ArenaQuery query) {
+    final prefix = query.sortAscending ? '' : '-';
+    final field = switch (query.sortField) {
+      'city' => 'city',
+      'capacity' => 'capacity',
+      'id' => 'id',
+      _ => 'name',
+    };
+    return '$prefix$field';
+  }
+
+  String _filter(ArenaQuery query) {
+    return joinFilters([
+      pbActiveFilter(includeDeleted: query.includeDeleted),
+      if (query.search.trim().isNotEmpty)
+        'name ~ ${pbQuote(query.search.trim())} || '
+            'city ~ ${pbQuote(query.search.trim())}',
+      if (query.city != null) 'city = ${pbQuote(query.city!)}',
+      if (query.capacityFrom != null) 'capacity >= ${query.capacityFrom}',
+      if (query.capacityTo != null) 'capacity <= ${query.capacityTo}',
+    ]);
+  }
+
+  Future<Arena> _withTeamCount(Arena arena) async {
+    final count = await teamCountForArena(arena.id);
+    return arena.copyWith(teamCount: count);
+  }
 
   @override
   Future<PageResult<Arena>> find(ArenaQuery query) => guard(() async {
-        final token = _findCancel.next();
-        final response = await _dio.get<dynamic>(
-          '/arenas',
-          queryParameters: {
-            if (query.search.trim().isNotEmpty) 'search': query.search.trim(),
-            if (query.city != null) 'city': query.city,
-            if (query.capacityFrom != null) 'capacityFrom': query.capacityFrom,
-            if (query.capacityTo != null) 'capacityTo': query.capacityTo,
-            'sort':
-                '${query.sortField},${query.sortAscending ? 'asc' : 'desc'}',
-            'page': query.page,
-            'size': query.size,
-            if (query.includeDeleted) 'includeDeleted': true,
-            if (query.simulateError) '__fail': 500,
-          },
-          cancelToken: token,
+        _findCancel.next();
+        if (query.simulateError) {
+          throw const ServerException('Учебная ошибка 500');
+        }
+        final data = await _pb.list(
+          'arenas',
+          page: query.page,
+          perPage: query.size,
+          filter: _filter(query),
+          sort: _sort(query),
         );
-        return parsePageResult(
-          response.data,
-          Arena.fromJson,
-          fallbackSize: query.size,
+        final page =
+            parsePageResult(data, Arena.fromJson, fallbackSize: query.size);
+        return PageResult(
+          items: [for (final a in page.items) await _withTeamCount(a)],
+          page: page.page,
+          size: page.size,
+          total: page.total,
         );
       });
 
   @override
-  Future<Arena?> findById(int id) => guard(() async {
+  Future<Arena?> findById(String id) => guard(() async {
         try {
-          final response = await _dio.get<dynamic>('/arenas/$id');
-          return Arena.fromJson(asJsonMap(response.data));
+          final data = await _pb.getOne('arenas', id);
+          return _withTeamCount(Arena.fromJson(data));
         } on NotFoundException {
           return null;
         }
@@ -54,59 +80,58 @@ class ApiArenaRepository implements ArenaRepository {
 
   @override
   Future<Arena> create(Arena arena) => guard(() async {
-        final response =
-            await _dio.post<dynamic>('/arenas', data: arena.toApiBody());
+        final data = await _pb.create('arenas', arena.toApiBody());
         _cache.invalidateArenas();
-        return Arena.fromJson(asJsonMap(response.data));
+        return Arena.fromJson(data);
       });
 
   @override
   Future<Arena> update(Arena arena) => guard(() async {
-        final response = await _dio.put<dynamic>(
-          '/arenas/${arena.id}',
-          data: arena.toApiBody(),
-        );
+        final data = await _pb.update('arenas', arena.id, arena.toApiBody());
         _cache.invalidateArenas();
-        return Arena.fromJson(asJsonMap(response.data));
+        return Arena.fromJson(data);
       });
 
   @override
-  Future<void> softDelete(int id) => guard(() async {
-        await _dio.delete<dynamic>('/arenas/$id');
+  Future<void> softDelete(String id) => guard(() async {
+        await _pb.update('arenas', id, {
+          'deletedAt': DateTime.now().toUtc().toIso8601String(),
+        });
         _cache.invalidateArenas();
       });
 
   @override
-  Future<void> hardDelete(int id) => guard(() async {
-        try {
-          await _dio.delete<dynamic>(
-            '/arenas/$id',
-            queryParameters: {'hard': true},
-          );
-          _cache.invalidateArenas();
-        } on ConflictException catch (error) {
-          throw RelatedRecordsException(
-            error.message,
-            error.count ?? 0,
+  Future<void> hardDelete(String id) => guard(() async {
+        final linked = await teamsLinkedTo(id);
+        if (linked > 0) {
+          throw ConflictException(
+            'На арену ссылаются команды: $linked.',
+            count: linked,
           );
         }
-      });
-
-  @override
-  Future<void> restore(int id) => guard(() async {
-        await _dio.post<dynamic>('/arenas/$id/restore');
+        await _pb.delete('arenas', id);
         _cache.invalidateArenas();
       });
 
   @override
-  Future<int> deleteMany(List<int> ids, {bool physical = false}) =>
+  Future<void> restore(String id) => guard(() async {
+        await _pb.update('arenas', id, {'deletedAt': null});
+        _cache.invalidateArenas();
+      });
+
+  @override
+  Future<int> deleteMany(List<String> ids, {bool physical = false}) =>
       guard(() async {
-        final response = await _dio.post<dynamic>(
-          '/arenas/bulk-delete',
-          data: {'ids': ids, 'physical': physical},
-        );
-        _cache.invalidateArenas();
-        return asJsonMap(response.data)['deleted'] as int? ?? 0;
+        var count = 0;
+        for (final id in ids) {
+          if (physical) {
+            await hardDelete(id);
+          } else {
+            await softDelete(id);
+          }
+          count++;
+        }
+        return count;
       });
 
   @override
@@ -121,11 +146,18 @@ class ApiArenaRepository implements ArenaRepository {
       });
 
   @override
-  Future<int> teamCountForArena(int arenaId) => guard(() async {
-        final arena = await findById(arenaId);
-        return arena?.teamCount ?? 0;
+  Future<int> teamCountForArena(String arenaId) => guard(() async {
+        final data = await _pb.list(
+          'teams',
+          perPage: 1,
+          filter: joinFilters([
+            'arena = ${pbQuote(arenaId)}',
+            pbActiveFilter(),
+          ]),
+        );
+        return (data['totalItems'] as num?)?.toInt() ?? 0;
       });
 
   @override
-  Future<int> teamsLinkedTo(int arenaId) => teamCountForArena(arenaId);
+  Future<int> teamsLinkedTo(String arenaId) => teamCountForArena(arenaId);
 }
